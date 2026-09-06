@@ -1,23 +1,45 @@
+import { HomeView } from '../view/home/HomeView'
+import { FoodLibraryView } from '../view/food/FoodLibraryView'
+import { RecordView } from '../view/record/RecordView'
+import { AnalysisView } from '../view/analysis/AnalysisView'
+import { ProfileView } from '../view/profile/ProfileView'
+
 @Entry
 @Component
 struct Index {
-  @State message: string = 'Hello World';
+  @State currentIndex: number = 0;
 
   build() {
-    RelativeContainer() {
-      Text(this.message)
-        .id('HelloWorld')
-        .fontSize($r('app.float.page_text_font_size'))
-        .fontWeight(FontWeight.Bold)
-        .alignRules({
-          center: { anchor: '__container__', align: VerticalAlign.Center },
-          middle: { anchor: '__container__', align: HorizontalAlign.Center }
-        })
-        .onClick(() => {
-          this.message = 'Welcome';
-        })
+    Tabs({ barPosition: BarPosition.End }) {
+      TabContent() {
+        HomeView()
+      }
+      .tabBar('首页')
+
+      TabContent() {
+        FoodLibraryView()
+      }
+      .tabBar('食物库')
+
+      TabContent() {
+        RecordView()
+      }
+      .tabBar('记录')
+
+      TabContent() {
+        AnalysisView()
+      }
+      .tabBar('分析')
+
+      TabContent() {
+        ProfileView()
+      }
+      .tabBar('我的')
     }
-    .height('100%')
+    .onChange((index: number) => {
+      this.currentIndex = index;
+    })
     .width('100%')
+    .height('100%')
   }
 }
