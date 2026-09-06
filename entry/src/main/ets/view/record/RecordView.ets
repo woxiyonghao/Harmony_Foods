@@ -1,20 +1,218 @@
+import { AppTheme } from '../../common/constants/AppTheme'
+
+interface FoodEntry {
+  name: string;
+  amount: string;
+  energy: number;
+}
+
+interface MealSlot {
+  title: string;
+  icon: string;
+  foods: FoodEntry[];
+  suggestedEnergy?: string;
+}
+
 @Component
 export struct RecordView {
+  @State meals: MealSlot[] = [
+    {
+      title: '早餐',
+      icon: '🍳',
+      suggestedEnergy: '推荐 400-600',
+      foods: [
+        { name: '全麦面包', amount: '100g', energy: 247 },
+        { name: '纯牛奶', amount: '250ml', energy: 165 }
+      ]
+    },
+    {
+      title: '午餐',
+      icon: '🍱',
+      suggestedEnergy: '推荐 600-800',
+      foods: [
+        { name: '米饭', amount: '150g', energy: 174 },
+        { name: '西红柿炒鸡蛋', amount: '200g', energy: 240 }
+      ]
+    },
+    {
+      title: '晚餐',
+      icon: '🥗',
+      suggestedEnergy: '推荐 400-600',
+      foods: [] // 留空展示空状态
+    },
+    {
+      title: '加餐',
+      icon: '🍎',
+      foods: []
+    }
+  ];
+
+  // 计算每餐总摄入
+  getMealEnergy(foods: FoodEntry[]): number {
+    let total = 0;
+    for (let f of foods) {
+      total += f.energy;
+    }
+    return total;
+  }
+
   build() {
-    Column({ space: 15 }) {
-      Text('饮食记录').fontSize(24).fontWeight(FontWeight.Bold).margin({ top: 20 })
-      
-      // 视图：日历视图、当日数据汇总详情
-      Text('[占位] 日历控件与当日汇总').fontSize(16).fontColor(Color.Gray)
-      
-      // 记录入口：分早餐、午餐、晚餐、加餐四个时段
-      Text('[占位] 早餐 / 午餐 / 晚餐 / 加餐 入口').fontSize(16).fontColor(Color.Gray)
-      
-      // 添加方式：搜索添加、最近吃过、我的收藏、快捷模糊录入
-      Text('[占位] 快速添加工具栏').fontSize(16).fontColor(Color.Gray)
+    Column() {
+      // 1. 顶部日期导航与今日汇总
+      this.DateNavigator()
+
+      Scroll() {
+        Column({ space: 16 }) {
+          // 2. 快捷记录工具栏
+          this.QuickActions()
+
+          // 3. 四个时段的饮食记录卡片
+          ForEach(this.meals, (meal: MealSlot) => {
+            this.MealCard(meal)
+          })
+          
+          Blank().height(20) // 底部留白
+        }
+        .padding({ left: 16, right: 16, top: 12, bottom: 20 })
+      }
+      .width('100%')
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
     }
     .width('100%')
     .height('100%')
-    .padding(20)
+    .backgroundColor('#F7F8FA')
+  }
+
+  @Builder
+  DateNavigator() {
+    Row() {
+      // 左侧箭头
+      Text('<').fontSize(18).fontColor('#666666').padding(10).fontWeight(FontWeight.Bold)
+      
+      // 日期与汇总
+      Column() {
+        Text('9月6日 今天')
+          .fontSize(16)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#333333')
+        
+        Text('总摄入 826 / 2100 千卡')
+          .fontSize(12)
+          .fontColor(AppTheme.PRIMARY_COLOR)
+          .margin({ top: 4 })
+          .backgroundColor('#E8F5E9')
+          .padding({ left: 10, right: 10, top: 2, bottom: 2 })
+          .borderRadius(10)
+      }.alignItems(HorizontalAlign.Center)
+      
+      // 右侧箭头 (禁用样式)
+      Text('>').fontSize(18).fontColor('#CCCCCC').padding(10).fontWeight(FontWeight.Bold)
+    }
+    .width('100%')
+    .justifyContent(FlexAlign.SpaceBetween)
+    .padding({ left: 20, right: 20, top: 10, bottom: 10 })
+    .backgroundColor(Color.White)
+    .shadow({ radius: 8, color: 'rgba(0,0,0,0.02)', offsetY: 4 })
+  }
+
+  @Builder
+  QuickActions() {
+    Row({ space: 10 }) {
+      this.QuickActionButton('🔍', '搜索添加')
+      this.QuickActionButton('🕒', '最近吃过')
+      this.QuickActionButton('⭐', '我的收藏')
+      this.QuickActionButton('⚡', '快捷录入')
+    }
+    .width('100%')
+    .justifyContent(FlexAlign.SpaceBetween)
+  }
+
+  @Builder
+  QuickActionButton(icon: string, text: string) {
+    Column({ space: 6 }) {
+      Text(icon).fontSize(20)
+      Text(text).fontSize(12).fontColor('#555555').fontWeight(FontWeight.Medium)
+    }
+    .layoutWeight(1)
+    .padding({ top: 12, bottom: 12 })
+    .backgroundColor(Color.White)
+    .borderRadius(12)
+    .shadow({ radius: 8, color: 'rgba(0,0,0,0.03)', offsetY: 4 })
+  }
+
+  @Builder
+  MealCard(meal: MealSlot) {
+    Column() {
+      // 头部：图标、标题、推荐热量与添加按钮
+      Row() {
+        Row({ space: 8 }) {
+          Text(meal.icon).fontSize(18)
+          Text(meal.title).fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
+          if (meal.suggestedEnergy) {
+            Text(meal.suggestedEnergy).fontSize(11).fontColor('#999999')
+          }
+        }
+        
+        Blank()
+        
+        // 当餐总热量
+        Text(`${this.getMealEnergy(meal.foods)} 千卡`)
+          .fontSize(14)
+          .fontWeight(FontWeight.Medium)
+          .fontColor(meal.foods.length > 0 ? AppTheme.PRIMARY_COLOR : '#999999')
+          .margin({ right: 12 })
+        
+        // 添加按钮
+        Button('+')
+          .type(ButtonType.Circle)
+          .width(26).height(26)
+          .backgroundColor(AppTheme.PRIMARY_COLOR)
+          .fontSize(18)
+          .fontColor(Color.White)
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Center)
+      
+      // 食物列表详情
+      if (meal.foods.length > 0) {
+        Column() {
+          ForEach(meal.foods, (food: FoodEntry, index: number) => {
+            Row() {
+              Column() {
+                Text(food.name).fontSize(14).fontColor('#333333').fontWeight(FontWeight.Medium)
+                Text(food.amount).fontSize(12).fontColor('#999999').margin({ top: 4 })
+              }.alignItems(HorizontalAlign.Start)
+              
+              Blank()
+              
+              Text(`${food.energy} 千卡`).fontSize(14).fontColor('#555555')
+            }
+            .width('100%')
+            .padding({ top: 12, bottom: index === meal.foods.length - 1 ? 0 : 12 })
+            
+            // 分割线
+            if (index !== meal.foods.length - 1) {
+              Divider().color('#F0F0F0').strokeWidth(1)
+            }
+          })
+        }
+        .width('100%')
+        .margin({ top: 12 })
+      } else {
+        // 空状态
+        Row() {
+          Text(`点击右上角添加${meal.title}`).fontSize(12).fontColor('#CCCCCC')
+        }
+        .width('100%')
+        .justifyContent(FlexAlign.Center)
+        .padding({ top: 20, bottom: 8 })
+      }
+    }
+    .width('100%')
+    .padding(16)
+    .backgroundColor(Color.White)
+    .borderRadius(16)
+    .shadow({ radius: 8, color: 'rgba(0,0,0,0.03)', offsetY: 4 })
   }
 }
