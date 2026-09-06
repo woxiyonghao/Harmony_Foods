@@ -1,4 +1,5 @@
 import { AppTheme } from '../../common/constants/AppTheme'
+import { DateNavigator } from '../../common/components/DateNavigator'
 
 interface FoodEntry {
   name: string;
@@ -57,8 +58,17 @@ export struct RecordView {
 
   build() {
     Column() {
-      // 1. 顶部日期导航与今日汇总
-      this.DateNavigator()
+      // 1. 顶部日期导航与今日汇总 (引入通用的 DateNavigator)
+      DateNavigator({
+        dateText: '9月6日 今天',
+        subText: '总摄入 826 / 2100 千卡',
+        onPrevClick: () => {
+          console.log('点击了前一天');
+        },
+        onNextClick: () => {
+          console.log('点击了后一天');
+        }
+      })
 
       Scroll() {
         Column({ space: 16 }) {
@@ -81,38 +91,6 @@ export struct RecordView {
     .width('100%')
     .height('100%')
     .backgroundColor('#F7F8FA')
-  }
-
-  @Builder
-  DateNavigator() {
-    Row() {
-      // 左侧箭头
-      Text('<').fontSize(18).fontColor('#666666').padding(10).fontWeight(FontWeight.Bold)
-      
-      // 日期与汇总
-      Column() {
-        Text('9月6日 今天')
-          .fontSize(16)
-          .fontWeight(FontWeight.Bold)
-          .fontColor('#333333')
-        
-        Text('总摄入 826 / 2100 千卡')
-          .fontSize(12)
-          .fontColor(AppTheme.PRIMARY_COLOR)
-          .margin({ top: 4 })
-          .backgroundColor('#E8F5E9')
-          .padding({ left: 10, right: 10, top: 2, bottom: 2 })
-          .borderRadius(10)
-      }.alignItems(HorizontalAlign.Center)
-      
-      // 右侧箭头 (禁用样式)
-      Text('>').fontSize(18).fontColor('#CCCCCC').padding(10).fontWeight(FontWeight.Bold)
-    }
-    .width('100%')
-    .justifyContent(FlexAlign.SpaceBetween)
-    .padding({ left: 20, right: 20, top: 10, bottom: 10 })
-    .backgroundColor(Color.White)
-    .shadow({ radius: 8, color: 'rgba(0,0,0,0.02)', offsetY: 4 })
   }
 
   @Builder
