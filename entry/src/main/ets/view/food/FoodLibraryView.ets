@@ -17,7 +17,6 @@ interface FoodItem {
   name: string;
   energy: number; // kcal per 100g
   tags: FoodTag[];
-  imageRes: Resource;
 }
 
 @CustomDialog
@@ -85,8 +84,7 @@ export struct FoodLibraryView {
       tags: [
         { label: '低嘌呤', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' },
         { label: '低钠', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' }
-      ],
-      imageRes: $r('app.media.img_apple')
+      ]
     },
     {
       id: '2', categoryId: 3,
@@ -94,8 +92,7 @@ export struct FoodLibraryView {
       tags: [
         { label: '中嘌呤 (150mg)', color: '#FF9800', bgColor: '#FFF3E0' },
         { label: '高蛋白', color: '#2196F3', bgColor: '#E3F2FD' }
-      ],
-      imageRes: $r('app.media.img_pork')
+      ]
     },
     {
       id: '3', categoryId: 3,
@@ -103,8 +100,7 @@ export struct FoodLibraryView {
       tags: [
         { label: '高嘌呤 (275mg)', color: '#F44336', bgColor: '#FFEBEE' },
         { label: '高胆固醇', color: '#F44336', bgColor: '#FFEBEE' }
-      ],
-      imageRes: $r('app.media.img_liver')
+      ]
     },
     {
       id: '4', categoryId: 1,
@@ -112,8 +108,7 @@ export struct FoodLibraryView {
       tags: [
         { label: '低热量', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' },
         { label: '草酸溶出', color: '#FF9800', bgColor: '#FFF3E0' }
-      ],
-      imageRes: $r('app.media.img_spinach')
+      ]
     },
     {
       id: '5', categoryId: 4,
@@ -121,8 +116,7 @@ export struct FoodLibraryView {
       tags: [
         { label: '高钙', color: '#2196F3', bgColor: '#E3F2FD' },
         { label: '极低嘌呤', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' }
-      ],
-      imageRes: $r('app.media.img_milk')
+      ]
     }
   ];
 
@@ -131,13 +125,11 @@ export struct FoodLibraryView {
       confirm: (name: string, energy: number) => {
         let newFood: FoodItem = {
           id: Date.now().toString(),
-          categoryId: this.selectedCategoryIndex === 0 ? 1 : this.selectedCategoryIndex, // 默认当前分类
+          categoryId: this.selectedCategoryIndex === 0 ? 1 : this.selectedCategoryIndex,
           name: name,
           energy: energy,
-          tags: [{ label: '自定义', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' }],
-          imageRes: $r('app.media.img_placeholder')
+          tags: [{ label: '自定义', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' }]
         };
-        // 动态添加到数据源最前方
         this.mockFoods.unshift(newFood);
       }
     }),
@@ -145,7 +137,6 @@ export struct FoodLibraryView {
     autoCancel: true
   })
 
-  // 动态计算过滤后的食物列表
   getFilteredFoods(): FoodItem[] {
     return this.mockFoods.filter(food => {
       let matchCategory = (this.selectedCategoryIndex === 0) || (food.categoryId === this.selectedCategoryIndex);
@@ -167,7 +158,6 @@ export struct FoodLibraryView {
           .placeholderFont({ size: 14 })
           .textFont({ size: 14 })
           .onChange((value: string) => {
-            // 实时搜索过滤
             this.searchQuery = value;
           })
           .onSubmit((value: string) => {
@@ -230,7 +220,6 @@ export struct FoodLibraryView {
     .alignItems(HorizontalAlign.Start)
   }
 
-  // 组件：类别筛选药丸 (Pill)
   @Builder
   CategoryChip(item: Category, index: number) {
     Row({ space: 6 }) {
@@ -249,30 +238,18 @@ export struct FoodLibraryView {
     .borderRadius(20)
     .shadow(this.selectedCategoryIndex === index ? { radius: 8, color: 'rgba(46,139,87,0.3)', offsetY: 4 } : { radius: 0 })
     .onClick(() => {
-      // 点击切换分类
       this.selectedCategoryIndex = index;
     })
   }
 
-  // 组件：食物详细信息卡片
   @Builder
   FoodCard(food: FoodItem) {
     Row() {
-      // 左侧：真实的食物图片
-      Image(food.imageRes)
-        .width(60)
-        .height(60)
-        .objectFit(ImageFit.Cover)
-        .borderRadius(12)
-        .margin({ right: 16 })
-        .backgroundColor('#F0F0F0')
-
-      // 中间：名称与指标标签
+      // 文本与指标标签区域 (居左，占满剩余空间)
       Column({ space: 6 }) {
         Text(food.name).fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
         Text(`${food.energy} 千卡 / 100g`).fontSize(13).fontColor('#666666')
         
-        // 动态标签流式布局
         Flex({ wrap: FlexWrap.Wrap }) {
           ForEach(food.tags, (tag: FoodTag) => {
             Text(tag.label)
