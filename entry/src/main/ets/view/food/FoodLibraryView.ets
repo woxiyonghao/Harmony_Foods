@@ -12,10 +12,56 @@ interface FoodTag {
 }
 
 interface FoodItem {
+  id: string;
+  categoryId: number; // 0=全部, 1=蔬菜, 2=水果, 3=肉禽, 4=饮品, 5=中式
   name: string;
   energy: number; // kcal per 100g
   tags: FoodTag[];
-  imageUrl?: string;
+  imageRes: Resource;
+}
+
+@CustomDialog
+export struct AddFoodDialog {
+  controller: CustomDialogController
+  @State foodName: string = ''
+  @State energy: string = ''
+  confirm: (name: string, energy: number) => void = () => {}
+
+  build() {
+    Column({ space: 16 }) {
+      Text('自定义添加食物').fontSize(20).fontWeight(FontWeight.Bold).fontColor('#333333')
+      
+      TextInput({ placeholder: '请输入食物名称 (如: 燕麦片)' })
+        .onChange((value: string) => { this.foodName = value; })
+        .height(48)
+        
+      TextInput({ placeholder: '热量 (千卡/100g)' })
+        .type(InputType.Number)
+        .onChange((value: string) => { this.energy = value; })
+        .height(48)
+        
+      Row({ space: 16 }) {
+        Button('取消')
+          .onClick(() => { this.controller.close(); })
+          .backgroundColor('#EAEAEA')
+          .fontColor('#333333')
+          .layoutWeight(1)
+          
+        Button('确定')
+          .onClick(() => {
+            if (this.foodName.trim() === '') return;
+            this.confirm(this.foodName, parseInt(this.energy) || 0);
+            this.controller.close();
+          })
+          .backgroundColor(AppTheme.PRIMARY_COLOR)
+          .fontColor(Color.White)
+          .layoutWeight(1)
+      }.width('100%').margin({ top: 12 })
+    }
+    .padding(24)
+    .backgroundColor(Color.White)
+    .borderRadius(16)
+  }
 }
 
 @Component
@@ -32,43 +78,81 @@ export struct FoodLibraryView {
     { name: '中式菜肴' }
   ];
 
-  private mockFoods: FoodItem[] = [
+  @State mockFoods: FoodItem[] = [
     {
+      id: '1', categoryId: 2,
       name: '苹果 (带皮)', energy: 53,
       tags: [
         { label: '低嘌呤', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' },
         { label: '低钠', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' }
-      ]
+      ],
+      imageRes: $r('app.media.img_apple')
     },
     {
+      id: '2', categoryId: 3,
       name: '猪肉 (瘦)', energy: 143,
       tags: [
         { label: '中嘌呤 (150mg)', color: '#FF9800', bgColor: '#FFF3E0' },
         { label: '高蛋白', color: '#2196F3', bgColor: '#E3F2FD' }
-      ]
+      ],
+      imageRes: $r('app.media.img_pork')
     },
     {
+      id: '3', categoryId: 3,
       name: '猪肝', energy: 130,
       tags: [
         { label: '高嘌呤 (275mg)', color: '#F44336', bgColor: '#FFEBEE' },
         { label: '高胆固醇', color: '#F44336', bgColor: '#FFEBEE' }
-      ]
+      ],
+      imageRes: $r('app.media.img_liver')
     },
     {
+      id: '4', categoryId: 1,
       name: '菠菜 (水煮)', energy: 28,
       tags: [
         { label: '低热量', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' },
         { label: '草酸溶出', color: '#FF9800', bgColor: '#FFF3E0' }
-      ]
+      ],
+      imageRes: $r('app.media.img_spinach')
     },
     {
+      id: '5', categoryId: 4,
       name: '全脂牛奶', energy: 62,
       tags: [
         { label: '高钙', color: '#2196F3', bgColor: '#E3F2FD' },
         { label: '极低嘌呤', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' }
-      ]
+      ],
+      imageRes: $r('app.media.img_milk')
     }
   ];
+
+  dialogController: CustomDialogController = new CustomDialogController({
+    builder: AddFoodDialog({
+      confirm: (name: string, energy: number) => {
+        let newFood: FoodItem = {
+          id: Date.now().toString(),
+          categoryId: this.selectedCategoryIndex === 0 ? 1 : this.selectedCategoryIndex, // 默认当前分类
+          name: name,
+          energy: energy,
+          tags: [{ label: '自定义', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' }],
+          imageRes: $r('app.media.img_placeholder')
+        };
+        // 动态添加到数据源最前方
+        this.mockFoods.unshift(newFood);
+      }
+    }),
+    alignment: DialogAlignment.Center,
+    autoCancel: true
+  })
+
+  // 动态计算过滤后的食物列表
+  getFilteredFoods(): FoodItem[] {
+    return this.mockFoods.filter(food => {
+      let matchCategory = (this.selectedCategoryIndex === 0) || (food.categoryId === this.selectedCategoryIndex);
+      let matchSearch = (this.searchQuery === '') || food.name.includes(this.searchQuery);
+      return matchCategory && matchSearch;
+    });
+  }
 
   build() {
     Column() {
@@ -82,6 +166,10 @@ export struct FoodLibraryView {
           .placeholderColor(Color.Grey)
           .placeholderFont({ size: 14 })
           .textFont({ size: 14 })
+          .onChange((value: string) => {
+            // 实时搜索过滤
+            this.searchQuery = value;
+          })
           .onSubmit((value: string) => {
             this.searchQuery = value;
           })
@@ -106,11 +194,11 @@ export struct FoodLibraryView {
 
       // 3. 食物列表与自定义入口
       List({ space: 12 }) {
-        ForEach(this.mockFoods, (food: FoodItem) => {
+        ForEach(this.getFilteredFoods(), (food: FoodItem) => {
           ListItem() {
             this.FoodCard(food)
           }
-        })
+        }, (food: FoodItem) => food.id)
         
         // 底部自定义食物卡片入口
         ListItem() {
@@ -127,6 +215,9 @@ export struct FoodLibraryView {
           .borderRadius(12)
           .border({ width: 1, color: AppTheme.PRIMARY_COLOR, style: BorderStyle.Dashed })
           .margin({ bottom: 20 })
+          .onClick(() => {
+            this.dialogController.open();
+          })
         }
       }
       .padding({ left: 16, right: 16, top: 8, bottom: 20 })
@@ -158,6 +249,7 @@ export struct FoodLibraryView {
     .borderRadius(20)
     .shadow(this.selectedCategoryIndex === index ? { radius: 8, color: 'rgba(46,139,87,0.3)', offsetY: 4 } : { radius: 0 })
     .onClick(() => {
+      // 点击切换分类
       this.selectedCategoryIndex = index;
     })
   }
@@ -166,14 +258,14 @@ export struct FoodLibraryView {
   @Builder
   FoodCard(food: FoodItem) {
     Row() {
-      // 左侧：头像/图片占位
-      Stack() {
-        Text(food.name.substring(0, 1)).fontSize(20).fontWeight(FontWeight.Bold).fontColor('#999')
-      }
-      .width(60).height(60)
-      .backgroundColor('#F0F0F0')
-      .borderRadius(12)
-      .margin({ right: 16 })
+      // 左侧：真实的食物图片
+      Image(food.imageRes)
+        .width(60)
+        .height(60)
+        .objectFit(ImageFit.Cover)
+        .borderRadius(12)
+        .margin({ right: 16 })
+        .backgroundColor('#F0F0F0')
 
       // 中间：名称与指标标签
       Column({ space: 6 }) {
