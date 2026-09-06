@@ -1,5 +1,10 @@
 import { AppTheme } from '../../common/constants/AppTheme'
 
+interface NutritionData {
+  label: string;
+  vals: number[];
+}
+
 @Component
 export struct AnalysisView {
   @State timeMode: string = '周';
@@ -88,7 +93,7 @@ export struct AnalysisView {
           { label: '五', vals: [60, 20, 10] },
           { label: '六', vals: [40, 40, 15] },
           { label: '日', vals: [55, 25, 25] }
-        ], (item: any) => {
+        ], (item: NutritionData) => {
           Column() {
             Blank() // 占位把柱子往下压
             Column() {
