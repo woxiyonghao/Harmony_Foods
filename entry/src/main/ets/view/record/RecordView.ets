@@ -8,7 +8,7 @@ interface FoodEntry {
 
 interface MealSlot {
   title: string;
-  icon: string;
+  icon: Resource;
   foods: FoodEntry[];
   suggestedEnergy?: string;
 }
@@ -18,7 +18,7 @@ export struct RecordView {
   @State meals: MealSlot[] = [
     {
       title: '早餐',
-      icon: '🍳',
+      icon: $r('app.media.ic_breakfast'),
       suggestedEnergy: '推荐 400-600',
       foods: [
         { name: '全麦面包', amount: '100g', energy: 247 },
@@ -27,7 +27,7 @@ export struct RecordView {
     },
     {
       title: '午餐',
-      icon: '🍱',
+      icon: $r('app.media.ic_lunch'),
       suggestedEnergy: '推荐 600-800',
       foods: [
         { name: '米饭', amount: '150g', energy: 174 },
@@ -36,18 +36,17 @@ export struct RecordView {
     },
     {
       title: '晚餐',
-      icon: '🥗',
+      icon: $r('app.media.ic_dinner'),
       suggestedEnergy: '推荐 400-600',
       foods: [] // 留空展示空状态
     },
     {
       title: '加餐',
-      icon: '🍎',
+      icon: $r('app.media.ic_snack'),
       foods: []
     }
   ];
 
-  // 计算每餐总摄入
   getMealEnergy(foods: FoodEntry[]): number {
     let total = 0;
     for (let f of foods) {
@@ -119,23 +118,23 @@ export struct RecordView {
   @Builder
   QuickActions() {
     Row({ space: 10 }) {
-      this.QuickActionButton('🔍', '搜索添加')
-      this.QuickActionButton('🕒', '最近吃过')
-      this.QuickActionButton('⭐', '我的收藏')
-      this.QuickActionButton('⚡', '快捷录入')
+      this.QuickActionButton($r('app.media.ic_search'), '搜索添加', '#2196F3')
+      this.QuickActionButton($r('app.media.ic_recent'), '最近吃过', '#FF9800')
+      this.QuickActionButton($r('app.media.ic_favorite'), '我的收藏', '#E91E63')
+      this.QuickActionButton($r('app.media.ic_flash'), '快捷录入', AppTheme.PRIMARY_COLOR)
     }
     .width('100%')
     .justifyContent(FlexAlign.SpaceBetween)
   }
 
   @Builder
-  QuickActionButton(icon: string, text: string) {
-    Column({ space: 6 }) {
-      Text(icon).fontSize(20)
+  QuickActionButton(icon: Resource, text: string, iconColor: string) {
+    Column({ space: 8 }) {
+      Image(icon).width(24).height(24).fillColor(iconColor)
       Text(text).fontSize(12).fontColor('#555555').fontWeight(FontWeight.Medium)
     }
     .layoutWeight(1)
-    .padding({ top: 12, bottom: 12 })
+    .padding({ top: 14, bottom: 14 })
     .backgroundColor(Color.White)
     .borderRadius(12)
     .shadow({ radius: 8, color: 'rgba(0,0,0,0.03)', offsetY: 4 })
@@ -147,7 +146,7 @@ export struct RecordView {
       // 头部：图标、标题、推荐热量与添加按钮
       Row() {
         Row({ space: 8 }) {
-          Text(meal.icon).fontSize(18)
+          Image(meal.icon).width(22).height(22).fillColor('#333333')
           Text(meal.title).fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
           if (meal.suggestedEnergy) {
             Text(meal.suggestedEnergy).fontSize(11).fontColor('#999999')
