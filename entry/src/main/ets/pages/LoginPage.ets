@@ -51,7 +51,10 @@ struct LoginPage {
         }
       } catch (e) {}
       try {
-        router.replaceUrl({ url: 'pages/Index' });
+        router.replaceUrl({
+          url: 'pages/Index',
+          params: { targetIndex: 4 }
+        });
       } catch (e) {}
     } else {
       try {
@@ -193,10 +196,14 @@ struct LoginPage {
               .fontColor('#666666')
               .backgroundColor('#F0F2F5')
               .borderRadius(22)
-              .onClick(() => {
+              .onClick(async () => {
                 try {
+                  await FoodDBHelper.setCurrentUserId('10000');
                   promptAction.showToast({ message: '已进入离线体验模式' });
-                  router.replaceUrl({ url: 'pages/Index' });
+                  router.replaceUrl({
+                    url: 'pages/Index',
+                    params: { targetIndex: 0 }
+                  });
                 } catch (e) {}
               })
           }

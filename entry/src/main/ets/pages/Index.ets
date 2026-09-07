@@ -1,3 +1,4 @@
+import router from '@ohos.router';
 import { HomeView } from '../view/home/HomeView'
 import { FoodLibraryView } from '../view/food/FoodLibraryView'
 import { RecordView } from '../view/record/RecordView'
@@ -11,8 +12,22 @@ struct Index {
   @State currentIndex: number = 0;
   @State refreshTrigger: number = 0;
 
+  aboutToAppear() {
+    this.checkRouterParams();
+  }
+
   onPageShow() {
     this.refreshTrigger++;
+    this.checkRouterParams();
+  }
+
+  checkRouterParams() {
+    try {
+      let params = router.getParams() as Record<string, Object>;
+      if (params && params['targetIndex'] !== undefined) {
+        this.currentIndex = params['targetIndex'] as number;
+      }
+    } catch (e) {}
   }
 
   @Builder TabBuilder(title: string, targetIndex: number, normalIcon: Resource, activeIcon: Resource) {

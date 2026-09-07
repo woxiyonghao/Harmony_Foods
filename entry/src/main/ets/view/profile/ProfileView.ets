@@ -100,7 +100,8 @@ export struct ProfileView {
       secondaryButton: {
         value: '确认退出',
         fontColor: '#FF9800',
-        action: () => {
+        action: async () => {
+          await FoodDBHelper.logout();
           try {
             promptAction.showToast({ message: '已退出登录' });
             router.replaceUrl({ url: 'pages/LoginPage' });
@@ -164,7 +165,7 @@ export struct ProfileView {
 
       Column({ space: 4 }) {
         Text(this.profile.nickname).fontSize(20).fontWeight(FontWeight.Bold).fontColor('#333333')
-        Text(`ID: ${this.profile.id}`)
+        Text(this.profile.id === '10000' ? `ID: ${this.profile.id} (游客体验)` : `ID: ${this.profile.id}`)
           .fontSize(12).fontColor('#999999')
 
         Row({ space: 4 }) {
