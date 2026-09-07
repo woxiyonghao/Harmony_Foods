@@ -1,77 +1,8 @@
+import router from '@ohos.router'
 import promptAction from '@ohos.promptAction'
 import { AppTheme } from '../../common/constants/AppTheme'
 import { FoodDBHelper } from '../../common/utils/FoodDBHelper'
 import { UserProfile } from '../../common/models/FoodItem'
-
-// 1. 编辑个人信息弹窗
-@CustomDialog
-export struct EditProfileDialog {
-  controller: CustomDialogController
-  @State nickname: string = ''
-  @State selectedAvatar: string = '😊'
-  onConfirm: (nickname: string, avatar: string) => void = () => {}
-
-  private avatars: string[] = ['😊', '🏃', '🥗', '🧘', '🥑', '🚴', '🍎', '🍵']
-
-  build() {
-    Column({ space: 16 }) {
-      Text('编辑个人资料').fontSize(18).fontWeight(FontWeight.Bold).fontColor('#333333')
-
-      Text('选择头像:').fontSize(13).fontColor('#666666').width('100%')
-      Row({ space: 8 }) {
-        ForEach(this.avatars, (av: string) => {
-          Text(av)
-            .fontSize(26)
-            .padding(6)
-            .backgroundColor(this.selectedAvatar === av ? '#E8F5E9' : '#F5F5F5')
-            .borderRadius(14)
-            .border({
-              width: 2,
-              color: this.selectedAvatar === av ? AppTheme.PRIMARY_COLOR : 'transparent'
-            })
-            .onClick(() => {
-              this.selectedAvatar = av;
-            })
-        })
-      }.width('100%').justifyContent(FlexAlign.SpaceAround)
-
-      Text('用户昵称:').fontSize(13).fontColor('#666666').width('100%')
-      TextInput({ text: this.nickname, placeholder: '请输入昵称' })
-        .height(44)
-        .backgroundColor('#F7F8FA')
-        .onChange((val: string) => {
-          this.nickname = val;
-        })
-
-      Row({ space: 12 }) {
-        Button('取消')
-          .backgroundColor('#EAEAEA')
-          .fontColor('#333333')
-          .layoutWeight(1)
-          .onClick(() => {
-            this.controller.close();
-          })
-
-        Button('保存')
-          .backgroundColor(AppTheme.PRIMARY_COLOR)
-          .fontColor(Color.White)
-          .layoutWeight(1)
-          .onClick(() => {
-            if (this.nickname.trim() === '') {
-              promptAction.showToast({ message: '昵称不能为空' });
-              return;
-            }
-            this.onConfirm(this.nickname.trim(), this.selectedAvatar);
-            this.controller.close();
-          })
-      }.width('100%').margin({ top: 8 })
-    }
-    .padding(20)
-    .backgroundColor(Color.White)
-    .borderRadius(16)
-    .width('92%')
-  }
-}
 
 // 2. 基础身体数据与 BMI 计算弹窗
 @CustomDialog
@@ -558,6 +489,7 @@ export struct RestoreDataDialog {
 @Component
 export struct ProfileView {
   @Prop @Watch('onActiveTabChange') activeTab: number = 0;
+  @Prop @Watch('onRefresh') refreshTrigger: number = 0;
   @State profile: UserProfile = {
     id: 'default_user',
     nickname: '健康探索者',
@@ -571,7 +503,6 @@ export struct ProfileView {
     lastBackupTime: '昨天'
   };
 
-  editProfileController: CustomDialogController | null = null;
   bodyDataController: CustomDialogController | null = null;
   healthGoalController: CustomDialogController | null = null;
   diseaseTagsController: CustomDialogController | null = null;
@@ -591,6 +522,10 @@ export struct ProfileView {
     }
   }
 
+  onRefresh() {
+    this.loadProfile();
+  }
+
   async loadProfile() {
     this.profile = await FoodDBHelper.getUserProfile();
   }
@@ -603,21 +538,12 @@ export struct ProfileView {
     } catch (err) {}
   }
 
-  openEditProfileDialog() {
-    this.editProfileController = new CustomDialogController({
-      builder: EditProfileDialog({
-        nickname: this.profile.nickname,
-        selectedAvatar: this.profile.avatar,
-        onConfirm: (nick: string, av: string) => {
-          this.profile.nickname = nick;
-          this.profile.avatar = av;
-          this.saveAndRefresh(this.profile);
-        }
-      }),
-      alignment: DialogAlignment.Center,
-      autoCancel: true
-    });
-    this.editProfileController.open();
+  openEditProfilePage() {
+    try {
+      router.pushUrl({
+        url: 'pages/EditProfilePage'
+      });
+    } catch (err) {}
   }
 
   openBodyDataDialog() {
@@ -777,7 +703,7 @@ export struct ProfileView {
         .fontColor('#666666')
         .backgroundColor('transparent')
         .onClick(() => {
-          this.openEditProfileDialog();
+          this.openEditProfilePage();
         })
     }
     .width('100%')
@@ -786,7 +712,7 @@ export struct ProfileView {
     .borderRadius(16)
     .shadow({ radius: 8, color: 'rgba(0,0,0,0.03)', offsetY: 4 })
     .onClick(() => {
-      this.openEditProfileDialog();
+      this.openEditProfilePage();
     })
   }
 

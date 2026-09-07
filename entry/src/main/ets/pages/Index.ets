@@ -9,6 +9,11 @@ import { AppTheme } from '../common/constants/AppTheme'
 @Component
 struct Index {
   @State currentIndex: number = 0;
+  @State refreshTrigger: number = 0;
+
+  onPageShow() {
+    this.refreshTrigger++;
+  }
 
   @Builder TabBuilder(title: string, targetIndex: number, icon: Resource) {
     Column() {
@@ -60,7 +65,10 @@ struct Index {
       .tabBar(this.TabBuilder('分析', 3, $r('app.media.ic_analysis')))
 
       TabContent() {
-        ProfileView({ activeTab: this.currentIndex })
+        ProfileView({
+          activeTab: this.currentIndex,
+          refreshTrigger: this.refreshTrigger
+        })
       }
       .tabBar(this.TabBuilder('我的', 4, $r('app.media.ic_profile')))
     }
