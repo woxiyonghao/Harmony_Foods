@@ -3,26 +3,12 @@ import promptAction from '@ohos.promptAction'
 import { AppTheme } from '../../common/constants/AppTheme'
 import { FoodDBHelper } from '../../common/utils/FoodDBHelper'
 
+import { FoodTag, FoodItem } from '../../common/models/FoodItem'
+export { FoodTag, FoodItem }
+
 export interface Category {
   name: string;
   icon?: Resource;
-}
-
-export interface FoodTag {
-  label: string;
-  color: string;
-  bgColor: string;
-}
-
-export interface FoodItem {
-  id: string;
-  categoryId: number; // 0=全部, 1=蔬菜, 2=水果, 3=肉禽, 4=饮品, 5=中式
-  name: string;
-  energy: number; // kcal per 100g
-  tags: FoodTag[];
-  protein?: number;
-  fat?: number;
-  carbs?: number;
 }
 
 @CustomDialog

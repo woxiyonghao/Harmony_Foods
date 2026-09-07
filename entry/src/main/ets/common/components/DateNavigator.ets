@@ -5,9 +5,12 @@ export struct DateNavigator {
   @Prop dateText: string = '';
   @Prop subText: string = '';
   
-  // 左右点击事件回调
+  @Prop nextEnabled: boolean = true;
+  
+  // 左右及日期点击事件回调
   onPrevClick?: () => void;
   onNextClick?: () => void;
+  onDateClick?: () => void;
 
   build() {
     Row() {
@@ -43,20 +46,26 @@ export struct DateNavigator {
             .padding({ left: 10, right: 10, top: 2, bottom: 2 })
             .borderRadius(10)
         }
-      }.alignItems(HorizontalAlign.Center)
+      }
+      .alignItems(HorizontalAlign.Center)
+      .onClick(() => {
+        if (this.onDateClick) {
+          this.onDateClick();
+        }
+      })
       
       // 右侧箭头
       Button({ type: ButtonType.Circle, stateEffect: true }) {
         Image($r('app.media.ic_arrow_right'))
           .width(24)
           .height(24)
-          .fillColor('#CCCCCC') // 默认今天不能看明天的，先置灰
+          .fillColor(this.nextEnabled ? '#666666' : '#CCCCCC')
       }
       .width(40)
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
-        if (this.onNextClick) {
+        if (this.nextEnabled && this.onNextClick) {
           this.onNextClick();
         }
       })
