@@ -451,7 +451,6 @@ export struct AnalysisView {
       Image($r('app.media.ic_record'))
         .width(22)
         .height(22)
-        .fillColor(AppTheme.PRIMARY_COLOR)
 
       Column({ space: 2 }) {
         Text(`${this.timeMode}维度暂无饮食记录`)
@@ -513,7 +512,7 @@ export struct AnalysisView {
     Column() {
       // 头部
       Row({ space: 8 }) {
-        Image($r('app.media.ic_trend')).width(18).height(18).fillColor('#333333')
+        Image($r('app.media.ic_trend')).width(18).height(18)
         Text('营养素摄入趋势').fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
         Blank()
         if (this.periodRecords.length === 0) {
@@ -642,7 +641,7 @@ export struct AnalysisView {
       // 头部：标题与指标切换按钮
       Row() {
         Row({ space: 8 }) {
-          Image($r('app.media.ic_risk')).width(18).height(18).fillColor('#F44336')
+          Image($r('app.media.ic_risk')).width(18).height(18)
           Text('风险指标超标预警').fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
         }
         
@@ -763,7 +762,7 @@ export struct AnalysisView {
   ScoreChartCard() {
     Column() {
       Row({ space: 8 }) {
-        Image($r('app.media.ic_score')).width(18).height(18).fillColor('#FFC107')
+        Image($r('app.media.ic_score')).width(18).height(18)
         Text('历史评分变化').fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
         Blank()
         Text(this.getAverageScore() > 0 ? `均分 ${this.getAverageScore()}` : '暂无评分')
@@ -884,13 +883,44 @@ export struct AnalysisView {
 
       // 三大核心指标概览 (真实计算数据)
       Row() {
-        this.ReportStatItem(
-          this.timeMode === '日' ? '今日摄入' : '周期日均',
-          `${this.getPeriodAverageEnergy()} kcal`,
-          this.getPeriodAverageEnergy() > 0 ? (this.getPeriodAverageEnergy() <= 2200 ? '正常达标' : '略微偏高') : '暂无数据'
-        )
-        this.ReportStatItem('供能比', this.getPeriodMacroRatioText(), this.periodRecords.length > 0 ? '宏量结构' : '待记录')
-        this.ReportStatItem('超标预警', `${this.getWarningCount()} 次`, this.getWarningCount() > 0 ? `${this.getCurrentRiskConfig().name}超标` : '安全稳定')
+        Column({ space: 4 }) {
+          Text(this.timeMode === '日' ? '今日摄入' : '周期日均').fontSize(11).fontColor('#718096')
+          Text(`${this.getPeriodAverageEnergy()} kcal`).fontSize(14).fontWeight(FontWeight.Bold).fontColor('#2D3748')
+          Text(this.getPeriodAverageEnergy() > 0 ? (this.getPeriodAverageEnergy() <= 2200 ? '正常达标' : '略微偏高') : '暂无数据')
+            .fontSize(10)
+            .fontColor(AppTheme.PRIMARY_COLOR)
+            .backgroundColor('#DCFCE7')
+            .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+            .borderRadius(6)
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Center)
+
+        Column({ space: 4 }) {
+          Text('供能比').fontSize(11).fontColor('#718096')
+          Text(this.getPeriodMacroRatioText()).fontSize(14).fontWeight(FontWeight.Bold).fontColor('#2D3748')
+          Text(this.periodRecords.length > 0 ? '宏量结构' : '待记录')
+            .fontSize(10)
+            .fontColor(AppTheme.PRIMARY_COLOR)
+            .backgroundColor('#DCFCE7')
+            .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+            .borderRadius(6)
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Center)
+
+        Column({ space: 4 }) {
+          Text('超标预警').fontSize(11).fontColor('#718096')
+          Text(`${this.getWarningCount()} 次`).fontSize(14).fontWeight(FontWeight.Bold).fontColor('#2D3748')
+          Text(this.getWarningCount() > 0 ? `${this.getCurrentRiskConfig().name}超标` : '安全稳定')
+            .fontSize(10)
+            .fontColor(AppTheme.PRIMARY_COLOR)
+            .backgroundColor('#DCFCE7')
+            .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+            .borderRadius(6)
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Center)
       }
       .width('100%')
       .padding({ top: 6, bottom: 6 })
@@ -909,22 +939,6 @@ export struct AnalysisView {
     .borderRadius(16)
     .border({ width: 1, color: '#DCFCE7' })
     .shadow({ radius: 8, color: 'rgba(46, 139, 87, 0.05)', offsetY: 4 })
-  }
-
-  @Builder
-  ReportStatItem(label: string, value: string, badge: string) {
-    Column({ space: 4 }) {
-      Text(label).fontSize(11).fontColor('#718096')
-      Text(value).fontSize(14).fontWeight(FontWeight.Bold).fontColor('#2D3748')
-      Text(badge)
-        .fontSize(10)
-        .fontColor(AppTheme.PRIMARY_COLOR)
-        .backgroundColor('#DCFCE7')
-        .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-        .borderRadius(6)
-    }
-    .layoutWeight(1)
-    .alignItems(HorizontalAlign.Center)
   }
 
   getDynamicSuggestion(): string {

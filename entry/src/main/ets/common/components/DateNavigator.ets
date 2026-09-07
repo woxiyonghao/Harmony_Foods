@@ -17,9 +17,8 @@ export struct DateNavigator {
       // 左侧箭头
       Button({ type: ButtonType.Circle, stateEffect: true }) {
         Image($r('app.media.ic_arrow_left'))
-          .width(24)
-          .height(24)
-          .fillColor('#666666')
+          .width(20)
+          .height(20)
       }
       .width(40)
       .height(40)
@@ -57,9 +56,9 @@ export struct DateNavigator {
       // 右侧箭头
       Button({ type: ButtonType.Circle, stateEffect: true }) {
         Image($r('app.media.ic_arrow_right'))
-          .width(24)
-          .height(24)
-          .fillColor(this.nextEnabled ? '#666666' : '#CCCCCC')
+          .width(20)
+          .height(20)
+          .opacity(this.nextEnabled ? 1.0 : 0.3)
       }
       .width(40)
       .height(40)

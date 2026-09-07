@@ -13,7 +13,6 @@ struct AboutPage {
           Image($r('app.media.ic_arrow_left'))
             .width(24)
             .height(24)
-            .fillColor('#333333')
         }
         .width(44)
         .height(44)
@@ -24,7 +23,7 @@ struct AboutPage {
           } catch (e) {}
         })
 
-        Text('关于食养智评')
+        Text('关于膳管家')
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .fontColor('#333333')
@@ -43,20 +42,14 @@ struct AboutPage {
         Column({ space: 16 }) {
           // App Logo & 版本信息
           Column({ space: 10 }) {
-            Stack() {
-              Circle({ width: 80, height: 80 }).fill('#E8F5E9')
-              Text('🥗').fontSize(46)
-            }
+            Image($r('app.media.app_icon'))
+              .width(80)
+              .height(80)
 
-            Text('食养智评')
+            Text('膳管家')
               .fontSize(22)
               .fontWeight(FontWeight.Bold)
               .fontColor('#333333')
-
-            Text('Harmony Foods · 离线优先营养管理')
-              .fontSize(13)
-              .fontColor(AppTheme.PRIMARY_COLOR)
-              .fontWeight(FontWeight.Medium)
 
             Text('版本 v1.2.0 Release')
               .fontSize(12)
@@ -118,16 +111,19 @@ struct AboutPage {
               Image($r('app.media.ic_tag'))
                 .width(20)
                 .height(20)
-                .fillColor(AppTheme.PRIMARY_COLOR)
                 .margin({ right: 12 })
               Text('隐私政策与协议')
                 .fontSize(15)
                 .fontWeight(FontWeight.Medium)
                 .fontColor('#333333')
               Blank()
-              Text('点击查看 >')
+              Text('点击查看')
                 .fontSize(13)
                 .fontColor(AppTheme.PRIMARY_COLOR)
+                .margin({ right: 4 })
+              Image($r('app.media.ic_arrow_right'))
+                .width(14)
+                .height(14)
             }
             .width('100%')
             .padding({ top: 16, bottom: 16, left: 16, right: 16 })
@@ -146,22 +142,21 @@ struct AboutPage {
               Image($r('app.media.ic_record'))
                 .width(20)
                 .height(20)
-                .fillColor('#666666')
                 .margin({ right: 12 })
               Text('用户使用指南与规范')
                 .fontSize(15)
                 .fontColor('#333333')
               Blank()
-              Text('>')
-                .fontSize(14)
-                .fontColor('#AAAAAA')
+              Image($r('app.media.ic_arrow_right'))
+                .width(14)
+                .height(14)
             }
             .width('100%')
             .padding({ top: 16, bottom: 16, left: 16, right: 16 })
             .onClick(() => {
               AlertDialog.show({
                 title: '用户使用规范',
-                message: '欢迎使用食养智评。本应用旨在为您提供科学、严谨的日常饮食营养辅助参考。本软件所有计算模型基于公开临床膳食指南，不构成任何处方性医疗诊断结论，疾病人群请遵医嘱。',
+                message: '欢迎使用膳管家。本应用旨在为您提供科学、严谨的日常饮食营养辅助参考。本软件所有计算模型基于公开临床膳食指南，不构成任何处方性医疗诊断结论，疾病人群请遵医嘱。',
                 confirm: {
                   value: '我已知晓',
                   action: () => {}
@@ -176,7 +171,6 @@ struct AboutPage {
               Image($r('app.media.ic_target'))
                 .width(20)
                 .height(20)
-                .fillColor('#666666')
                 .margin({ right: 12 })
               Text('检查应用更新')
                 .fontSize(15)
@@ -201,10 +195,10 @@ struct AboutPage {
 
           // 底部版权标识
           Column({ space: 4 }) {
-            Text('食养智评 研发团队 版权所有')
+            Text('膳管家 研发团队 版权所有')
               .fontSize(12)
               .fontColor('#AAAAAA')
-            Text('Copyright © 2026 Harmony Foods Team. All Rights Reserved.')
+            Text('Copyright © 2026 膳管家团队. All Rights Reserved.')
               .fontSize(10)
               .fontColor('#BBBBBB')
           }

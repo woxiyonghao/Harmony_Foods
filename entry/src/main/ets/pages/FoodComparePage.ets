@@ -24,7 +24,6 @@ struct FoodComparePage {
           Image($r('app.media.ic_arrow_left'))
             .width(24)
             .height(24)
-            .fillColor('#333333')
         }
         .width(40)
         .height(40)
@@ -141,7 +140,6 @@ struct FoodComparePage {
         Image($r('app.media.ic_food'))
           .width(20)
           .height(20)
-          .fillColor(themeColor)
       }
       .width(48)
       .height(48)

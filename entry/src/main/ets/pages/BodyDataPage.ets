@@ -100,7 +100,6 @@ struct BodyDataPage {
           Image($r('app.media.ic_arrow_left'))
             .width(24)
             .height(24)
-            .fillColor('#333333')
         }
         .width(44)
         .height(44)
@@ -284,7 +283,7 @@ struct BodyDataPage {
             .backgroundColor('#E8F5E9')
             .borderRadius(10)
 
-            Text('💡 提示：定期维护更新您的身体数据，能帮助食养智评为您提供更精确的每日推荐能量（基础代谢）与宏量营养素黄金供能比例。')
+            Text('💡 提示：定期维护更新您的身体数据，能帮助膳管家为您提供更精确的每日推荐能量（基础代谢）与宏量营养素黄金供能比例。')
               .fontSize(12)
               .fontColor('#888888')
               .lineHeight(18)

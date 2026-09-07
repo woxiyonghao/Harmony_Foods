@@ -342,10 +342,9 @@ export struct FavoriteFoodsDialog {
                 }.alignItems(HorizontalAlign.Start).layoutWeight(1)
 
                 // 点击金色星星可快速取消收藏
-                Image($r('app.media.ic_favorite'))
+                Image($r('app.media.ic_favorite_active'))
                   .width(20)
                   .height(20)
-                  .fillColor('#FFB800')
                   .margin({ right: 10 })
                   .onClick(async () => {
                     await FoodDBHelper.deleteFavoriteFood(fav.name);
@@ -478,7 +477,7 @@ export struct QuickEntryDialog {
 export struct RecordView {
   @Prop @Watch('onActiveTabChange') activeTab: number = 0;
   @State selectedDate: Date = new Date();
-  @State dateText: string = '9月6日 今天';
+  @State dateText: string = '';
   @State totalDailyEnergy: number = 0;
   @State favoriteNames: string[] = [];
   @State meals: MealSlot[] = [
@@ -767,7 +766,7 @@ export struct RecordView {
   @Builder
   QuickActionButton(icon: Resource, text: string, iconColor: string, onClickAction: () => void) {
     Column({ space: 8 }) {
-      Image(icon).width(24).height(24).fillColor(iconColor)
+      Image(icon).width(24).height(24)
       Text(text).fontSize(12).fontColor('#555555').fontWeight(FontWeight.Medium)
     }
     .layoutWeight(1)
@@ -784,7 +783,7 @@ export struct RecordView {
       // 头部：图标、标题、推荐热量与添加按钮
       Row() {
         Row({ space: 8 }) {
-          Image(meal.icon).width(22).height(22).fillColor('#333333')
+          Image(meal.icon).width(22).height(22)
           Text(meal.title).fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
           if (meal.suggestedEnergy) {
             Text(meal.suggestedEnergy).fontSize(11).fontColor('#999999')
@@ -801,15 +800,20 @@ export struct RecordView {
           .margin({ right: 12 })
         
         // 添加按钮
-        Button('+')
-          .type(ButtonType.Circle)
-          .width(26).height(26)
-          .backgroundColor(AppTheme.PRIMARY_COLOR)
-          .fontSize(18)
-          .fontColor(Color.White)
-          .onClick(() => {
-            this.openSearchAddDialog(meal.title);
-          })
+        Button({ type: ButtonType.Circle }) {
+          Text('+')
+            .fontSize(20)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(Color.White)
+            .textAlign(TextAlign.Center)
+        }
+        .width(28)
+        .height(28)
+        .padding(0)
+        .backgroundColor(AppTheme.PRIMARY_COLOR)
+        .onClick(() => {
+          this.openSearchAddDialog(meal.title);
+        })
       }
       .width('100%')
       .alignItems(VerticalAlign.Center)
@@ -827,10 +831,9 @@ export struct RecordView {
               Text(`${food.energy} 千卡`).fontSize(14).fontColor('#555555').margin({ right: 8 })
 
               // 收藏/取消收藏星星按钮
-              Image($r('app.media.ic_favorite'))
+              Image(this.favoriteNames.indexOf(food.foodName) !== -1 ? $r('app.media.ic_favorite_active') : $r('app.media.ic_favorite_inactive'))
                 .width(18)
                 .height(18)
-                .fillColor(this.favoriteNames.indexOf(food.foodName) !== -1 ? '#FFB800' : '#D1D5DB')
                 .margin({ right: 8 })
                 .onClick(async () => {
                   let newState = await FoodDBHelper.toggleFavorite(food.foodName, food.energy, food.amount);

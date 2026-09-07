@@ -66,17 +66,16 @@ struct LoginPage {
         Column({ space: 24 }) {
           // 顶部 Logo 与应用标题
           Column({ space: 8 }) {
-            Stack() {
-              Circle({ width: 84, height: 84 }).fill('#E8F5E9')
-              Text('🥗').fontSize(48)
-            }
+            Image($r('app.media.app_icon'))
+              .width(84)
+              .height(84)
 
-            Text('食养智评')
+            Text('膳管家')
               .fontSize(24)
               .fontWeight(FontWeight.Bold)
               .fontColor('#333333')
 
-            Text('Harmony Foods · 离线优先营养管理')
+            Text('科学膳食 · 离线健康管理')
               .fontSize(13)
               .fontColor(AppTheme.PRIMARY_COLOR)
               .fontWeight(FontWeight.Medium)

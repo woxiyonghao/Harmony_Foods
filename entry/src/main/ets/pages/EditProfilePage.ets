@@ -67,7 +67,6 @@ struct EditProfilePage {
           Image($r('app.media.ic_arrow_left'))
             .width(24)
             .height(24)
-            .fillColor('#333333')
         }
         .width(44)
         .height(44)
@@ -104,40 +103,16 @@ struct EditProfilePage {
       Scroll() {
         Column({ space: 16 }) {
           // 当前头像预览 Hero 卡片
-          Column({ space: 10 }) {
-            Stack({ alignContent: Alignment.BottomEnd }) {
+          Column() {
+            Stack({ alignContent: Alignment.Center }) {
               Circle({ width: 92, height: 92 })
                 .fill('#F3FAF5')
-                .border({
-                  width: 3,
-                  color: AppTheme.PRIMARY_COLOR
-                })
 
               Text(this.selectedAvatar)
                 .fontSize(52)
-                .margin({ bottom: 8 })
-
-              // 装饰小徽章
-              Row() {
-                Text('✓')
-                  .fontSize(10)
-                  .fontWeight(FontWeight.Bold)
-                  .fontColor(Color.White)
-              }
-              .width(22)
-              .height(22)
-              .backgroundColor(AppTheme.PRIMARY_COLOR)
-              .borderRadius(11)
-              .justifyContent(FlexAlign.Center)
-              .border({ width: 2, color: Color.White })
-              .margin({ right: 2, bottom: 2 })
             }
-            .width(96)
-            .height(96)
-
-            Text('当前展示形象')
-              .fontSize(12)
-              .fontColor('#888888')
+            .width(92)
+            .height(92)
           }
           .width('100%')
           .padding({ top: 20, bottom: 16 })
@@ -150,10 +125,6 @@ struct EditProfilePage {
                 .fontSize(16)
                 .fontWeight(FontWeight.Bold)
                 .fontColor('#333333')
-              Blank()
-              Text('点击选择')
-                .fontSize(12)
-                .fontColor('#999999')
             }
             .width('100%')
 
@@ -238,13 +209,6 @@ struct EditProfilePage {
                 .fontSize(14)
                 .fontWeight(FontWeight.Medium)
                 .fontColor('#333333')
-              Text('系统分配')
-                .fontSize(11)
-                .fontColor('#888888')
-                .backgroundColor('#F0F0F0')
-                .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-                .borderRadius(6)
-                .margin({ left: 8 })
             }
             .width('100%')
 

@@ -335,7 +335,6 @@ export struct FoodLibraryView {
       if (item.icon) {
         Image(item.icon)
           .width(16).height(16)
-          .fillColor(this.selectedCategoryIndex === index ? Color.White : '#666666')
       }
       Text(item.name)
         .fontSize(14)
@@ -360,10 +359,9 @@ export struct FoodLibraryView {
           Text(food.name).fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
           
           // 收藏星星按钮
-          Image($r('app.media.ic_favorite'))
+          Image(this.favoriteNames.indexOf(food.name) !== -1 ? $r('app.media.ic_favorite_active') : $r('app.media.ic_favorite_inactive'))
             .width(18)
             .height(18)
-            .fillColor(this.favoriteNames.indexOf(food.name) !== -1 ? '#FFB800' : '#D1D5DB')
             .onClick(async () => {
               let newState = await FoodDBHelper.toggleFavorite(food.name, food.energy, '100g', food.categoryId);
               this.favoriteNames = await FoodDBHelper.getFavoriteNames();

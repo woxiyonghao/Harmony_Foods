@@ -14,7 +14,6 @@ struct DataManagePage {
           Image($r('app.media.ic_arrow_left'))
             .width(24)
             .height(24)
-            .fillColor('#333333')
         }
         .width(44)
         .height(44)
@@ -48,7 +47,6 @@ struct DataManagePage {
               Image($r('app.media.ic_restore'))
                 .width(22)
                 .height(22)
-                .fillColor(AppTheme.PRIMARY_COLOR)
               Text('恢复官方预置健康食物与收藏')
                 .fontSize(16)
                 .fontWeight(FontWeight.Bold)
@@ -60,7 +58,7 @@ struct DataManagePage {
               .fontColor('#666666')
               .lineHeight(19)
 
-            Button('恢复预置数据')
+            Button('一键恢复预置食物数据')
               .width('100%')
               .height(44)
               .fontSize(14)
@@ -70,19 +68,18 @@ struct DataManagePage {
               .borderRadius(22)
               .onClick(() => {
                 AlertDialog.show({
-                  title: '确认恢复预置数据？',
-                  message: '系统将为您补充预置的健康食物库与初始收藏夹项目。',
+                  title: '确认恢复预置食物？',
+                  message: '将重新补充系统默认食物与默认收藏推荐，不会影响已有饮食日记。',
                   primaryButton: {
                     value: '取消',
                     action: () => {}
                   },
                   secondaryButton: {
                     value: '确认恢复',
-                    fontColor: AppTheme.PRIMARY_COLOR,
                     action: async () => {
                       await FoodDBHelper.seedInitialFavoritesIfEmpty();
                       try {
-                        promptAction.showToast({ message: '官方预置数据已成功恢复' });
+                        promptAction.showToast({ message: '已成功恢复预置数据' });
                       } catch (e) {}
                     }
                   }
@@ -101,7 +98,6 @@ struct DataManagePage {
               Image($r('app.media.ic_trash'))
                 .width(22)
                 .height(22)
-                .fillColor('#FF9800')
               Text('清空所有历史饮食记录')
                 .fontSize(16)
                 .fontWeight(FontWeight.Bold)
@@ -123,7 +119,7 @@ struct DataManagePage {
               .borderRadius(22)
               .onClick(() => {
                 AlertDialog.show({
-                  title: '二次确认清空记录？',
+                  title: '确认清空记录？',
                   message: '清空后所有历史日期的饮食记录将彻底删除且无法找回，确认继续吗？',
                   primaryButton: {
                     value: '取消',
@@ -154,7 +150,6 @@ struct DataManagePage {
               Image($r('app.media.ic_lock'))
                 .width(22)
                 .height(22)
-                .fillColor('#F44336')
               Text('恢复出厂初始状态')
                 .fontSize(16)
                 .fontWeight(FontWeight.Bold)

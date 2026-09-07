@@ -15,12 +15,11 @@ struct Index {
     this.refreshTrigger++;
   }
 
-  @Builder TabBuilder(title: string, targetIndex: number, icon: Resource) {
+  @Builder TabBuilder(title: string, targetIndex: number, normalIcon: Resource, activeIcon: Resource) {
     Column() {
-      Image(icon)
+      Image(this.currentIndex === targetIndex ? activeIcon : normalIcon)
         .width(24)
         .height(24)
-        .fillColor(this.currentIndex === targetIndex ? AppTheme.PRIMARY_COLOR : AppTheme.TEXT_COLOR_NORMAL)
         .margin({ bottom: 4 })
       Text(title)
         .fontColor(this.currentIndex === targetIndex ? AppTheme.PRIMARY_COLOR : AppTheme.TEXT_COLOR_NORMAL)
@@ -42,17 +41,17 @@ struct Index {
           }
         })
       }
-      .tabBar(this.TabBuilder('首页', 0, $r('app.media.ic_home')))
+      .tabBar(this.TabBuilder('首页', 0, $r('app.media.ic_tab_home_normal'), $r('app.media.ic_tab_home_active')))
 
       TabContent() {
         FoodLibraryView({ activeTab: this.currentIndex })
       }
-      .tabBar(this.TabBuilder('食物库', 1, $r('app.media.ic_food')))
+      .tabBar(this.TabBuilder('食物库', 1, $r('app.media.ic_tab_food_normal'), $r('app.media.ic_tab_food_active')))
 
       TabContent() {
         RecordView({ activeTab: this.currentIndex })
       }
-      .tabBar(this.TabBuilder('记录', 2, $r('app.media.ic_record')))
+      .tabBar(this.TabBuilder('记录', 2, $r('app.media.ic_tab_record_normal'), $r('app.media.ic_tab_record_active')))
 
       TabContent() {
         AnalysisView({
@@ -62,7 +61,7 @@ struct Index {
           }
         })
       }
-      .tabBar(this.TabBuilder('分析', 3, $r('app.media.ic_analysis')))
+      .tabBar(this.TabBuilder('分析', 3, $r('app.media.ic_tab_analysis_normal'), $r('app.media.ic_tab_analysis_active')))
 
       TabContent() {
         ProfileView({
@@ -70,7 +69,7 @@ struct Index {
           refreshTrigger: this.refreshTrigger
         })
       }
-      .tabBar(this.TabBuilder('我的', 4, $r('app.media.ic_profile')))
+      .tabBar(this.TabBuilder('我的', 4, $r('app.media.ic_tab_profile_normal'), $r('app.media.ic_tab_profile_active')))
     }
     .onChange((index: number) => {
       this.currentIndex = index;

@@ -485,6 +485,11 @@ export class FoodDBHelper {
     }
   }
 
+  // 恢复预置数据别名
+  static async reseedPresets(): Promise<void> {
+    await FoodDBHelper.seedInitialFavoritesIfEmpty();
+  }
+
   // 初始化收藏夹种子（若为空）
   static async seedInitialFavoritesIfEmpty(): Promise<void> {
     if (!rdbStore) return;

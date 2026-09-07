@@ -277,7 +277,6 @@ export struct HomeView {
       Image($r('app.media.ic_record'))
         .width(22)
         .height(22)
-        .fillColor(AppTheme.PRIMARY_COLOR)
 
       Column({ space: 2 }) {
         Text('今日暂无饮食记录')
@@ -402,9 +401,56 @@ export struct HomeView {
       Text('三大营养素').fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333').width('100%')
 
       Row() {
-        this.MacroItem('碳水', this.carbsGrams, this.targetCarbs, '#FF9800')
-        this.MacroItem('蛋白质', this.proteinGrams, this.targetProtein, '#2196F3')
-        this.MacroItem('脂肪', this.fatGrams, this.targetFat, '#E91E63')
+        // 碳水
+        Column({ space: 6 }) {
+          Text('碳水').fontSize(13).fontColor('#555555').fontWeight(FontWeight.Medium)
+          Stack() {
+            Progress({
+              value: Math.min(this.carbsGrams, this.targetCarbs),
+              total: this.targetCarbs,
+              type: ProgressType.Ring
+            })
+              .width(55).height(55)
+              .color('#FF9800').backgroundColor('#F0F0F0')
+              .style({ strokeWidth: 5 })
+            Text(`${this.carbsGrams}g`).fontSize(12).fontWeight(FontWeight.Bold).fontColor('#333333')
+          }
+          Text(`目标 ${this.targetCarbs}g`).fontSize(11).fontColor(AppTheme.TEXT_COLOR_NORMAL)
+        }
+
+        // 蛋白质
+        Column({ space: 6 }) {
+          Text('蛋白质').fontSize(13).fontColor('#555555').fontWeight(FontWeight.Medium)
+          Stack() {
+            Progress({
+              value: Math.min(this.proteinGrams, this.targetProtein),
+              total: this.targetProtein,
+              type: ProgressType.Ring
+            })
+              .width(55).height(55)
+              .color('#2196F3').backgroundColor('#F0F0F0')
+              .style({ strokeWidth: 5 })
+            Text(`${this.proteinGrams}g`).fontSize(12).fontWeight(FontWeight.Bold).fontColor('#333333')
+          }
+          Text(`目标 ${this.targetProtein}g`).fontSize(11).fontColor(AppTheme.TEXT_COLOR_NORMAL)
+        }
+
+        // 脂肪
+        Column({ space: 6 }) {
+          Text('脂肪').fontSize(13).fontColor('#555555').fontWeight(FontWeight.Medium)
+          Stack() {
+            Progress({
+              value: Math.min(this.fatGrams, this.targetFat),
+              total: this.targetFat,
+              type: ProgressType.Ring
+            })
+              .width(55).height(55)
+              .color('#E91E63').backgroundColor('#F0F0F0')
+              .style({ strokeWidth: 5 })
+            Text(`${this.fatGrams}g`).fontSize(12).fontWeight(FontWeight.Bold).fontColor('#333333')
+          }
+          Text(`目标 ${this.targetFat}g`).fontSize(11).fontColor(AppTheme.TEXT_COLOR_NORMAL)
+        }
       }
       .width('100%')
       .justifyContent(FlexAlign.SpaceBetween)
@@ -414,21 +460,6 @@ export struct HomeView {
     .backgroundColor(Color.White)
     .borderRadius(16)
     .shadow({ radius: 10, color: 'rgba(0,0,0,0.03)', offsetY: 4 })
-  }
-
-  @Builder
-  MacroItem(name: string, current: number, max: number, color: string) {
-    Column({ space: 6 }) {
-      Text(name).fontSize(13).fontColor('#555555').fontWeight(FontWeight.Medium)
-      Stack() {
-        Progress({ value: Math.min(current, max), total: max, type: ProgressType.Ring })
-          .width(55).height(55)
-          .color(color).backgroundColor('#F0F0F0')
-          .style({ strokeWidth: 5 })
-        Text(`${current}g`).fontSize(12).fontWeight(FontWeight.Bold).fontColor('#333333')
-      }
-      Text(`目标 ${max}g`).fontSize(11).fontColor(AppTheme.TEXT_COLOR_NORMAL)
-    }
   }
 
   @Builder
@@ -444,33 +475,63 @@ export struct HomeView {
       .width('100%')
 
       Row({ space: 12 }) {
-        this.RiskItem('嘌呤', `${this.purine}mg`, this.getPurineBadge().status, this.getPurineBadge().color, this.getPurineBadge().bgColor)
-        this.RiskItem('钠', `${this.sodium}mg`, this.getSodiumBadge().status, this.getSodiumBadge().color, this.getSodiumBadge().bgColor)
-        this.RiskItem('胆固醇', `${this.cholesterol}mg`, this.getCholesterolBadge().status, this.getCholesterolBadge().color, this.getCholesterolBadge().bgColor)
+        // 嘌呤
+        Column({ space: 8 }) {
+          Text('嘌呤').fontSize(13).fontColor('#666666')
+          Text(`${this.purine}mg`).fontSize(15).fontWeight(FontWeight.Bold).fontColor('#333333')
+          Text(this.getPurineBadge().status)
+            .fontSize(11)
+            .fontColor(this.getPurineBadge().color)
+            .backgroundColor(this.getPurineBadge().bgColor)
+            .padding({ left: 6, right: 6, top: 3, bottom: 3 })
+            .borderRadius(10)
+        }
+        .layoutWeight(1)
+        .padding(12)
+        .backgroundColor(Color.White)
+        .borderRadius(12)
+        .shadow({ radius: 10, color: 'rgba(0,0,0,0.03)', offsetY: 4 })
+        .alignItems(HorizontalAlign.Center)
+
+        // 钠
+        Column({ space: 8 }) {
+          Text('钠').fontSize(13).fontColor('#666666')
+          Text(`${this.sodium}mg`).fontSize(15).fontWeight(FontWeight.Bold).fontColor('#333333')
+          Text(this.getSodiumBadge().status)
+            .fontSize(11)
+            .fontColor(this.getSodiumBadge().color)
+            .backgroundColor(this.getSodiumBadge().bgColor)
+            .padding({ left: 6, right: 6, top: 3, bottom: 3 })
+            .borderRadius(10)
+        }
+        .layoutWeight(1)
+        .padding(12)
+        .backgroundColor(Color.White)
+        .borderRadius(12)
+        .shadow({ radius: 10, color: 'rgba(0,0,0,0.03)', offsetY: 4 })
+        .alignItems(HorizontalAlign.Center)
+
+        // 胆固醇
+        Column({ space: 8 }) {
+          Text('胆固醇').fontSize(13).fontColor('#666666')
+          Text(`${this.cholesterol}mg`).fontSize(15).fontWeight(FontWeight.Bold).fontColor('#333333')
+          Text(this.getCholesterolBadge().status)
+            .fontSize(11)
+            .fontColor(this.getCholesterolBadge().color)
+            .backgroundColor(this.getCholesterolBadge().bgColor)
+            .padding({ left: 6, right: 6, top: 3, bottom: 3 })
+            .borderRadius(10)
+        }
+        .layoutWeight(1)
+        .padding(12)
+        .backgroundColor(Color.White)
+        .borderRadius(12)
+        .shadow({ radius: 10, color: 'rgba(0,0,0,0.03)', offsetY: 4 })
+        .alignItems(HorizontalAlign.Center)
       }
       .width('100%')
     }
     .width('100%')
-  }
-
-  @Builder
-  RiskItem(name: string, value: string, status: string, statusColor: string, bgColor: string) {
-    Column({ space: 8 }) {
-      Text(name).fontSize(13).fontColor('#666666')
-      Text(value).fontSize(15).fontWeight(FontWeight.Bold).fontColor('#333333')
-      Text(status)
-        .fontSize(11)
-        .fontColor(statusColor)
-        .backgroundColor(bgColor)
-        .padding({ left: 6, right: 6, top: 3, bottom: 3 })
-        .borderRadius(10)
-    }
-    .layoutWeight(1)
-    .padding(12)
-    .backgroundColor(Color.White)
-    .borderRadius(12)
-    .shadow({ radius: 10, color: 'rgba(0,0,0,0.03)', offsetY: 4 })
-    .alignItems(HorizontalAlign.Center)
   }
 
   @Builder

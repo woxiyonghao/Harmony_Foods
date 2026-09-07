@@ -268,15 +268,15 @@ export struct ProfileView {
         Text('系统与账号').fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
       }.width('100%').padding({ left: 16, top: 16, bottom: 8 })
 
-      this.MenuRow($r('app.media.ic_target'), '关于食养智评', 'v1.2.0 >', () => {
+      this.MenuRow($r('app.media.ic_target'), '关于膳管家', 'v1.2.0', () => {
         this.openAboutPage();
       })
       Divider().color('#F0F0F0').strokeWidth(1).margin({ left: 50, right: 16 })
-      this.MenuRow($r('app.media.ic_record'), '退出登录', '保留数据 >', () => {
+      this.MenuRow($r('app.media.ic_record'), '退出登录', '', () => {
         this.handleLogout();
       })
       Divider().color('#F0F0F0').strokeWidth(1).margin({ left: 50, right: 16 })
-      this.MenuRow($r('app.media.ic_trash'), '注销用户', '清除全部数据 >', () => {
+      this.MenuRow($r('app.media.ic_trash'), '注销用户', '', () => {
         this.handleDeleteAccount();
       })
     }
@@ -289,11 +289,15 @@ export struct ProfileView {
   @Builder
   MenuRow(icon: Resource, title: string, value: string, onClickAction: () => void) {
     Row() {
-      Image(icon).width(20).height(20).fillColor('#666666').margin({ right: 12 })
+      Image(icon).width(20).height(20).margin({ right: 12 })
       Text(title).fontSize(15).fontColor('#333333')
       Blank()
-      Text(value).fontSize(13).fontColor('#999999').margin({ right: 8 })
-      Text('>').fontSize(16).fontColor('#CCCCCC')
+      if (value && value.trim() !== '') {
+        Text(value).fontSize(13).fontColor('#999999').margin({ right: 6 })
+      }
+      Image($r('app.media.ic_arrow_right'))
+        .width(16)
+        .height(16)
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 16, bottom: 16 })

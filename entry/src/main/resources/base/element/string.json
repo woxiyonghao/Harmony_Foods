@@ -2,15 +2,15 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "module description"
+      "value": "膳管家应用模块"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "description"
+      "value": "膳管家"
     },
     {
       "name": "EntryAbility_label",
-      "value": "label"
+      "value": "膳管家"
     }
   ]
 }
