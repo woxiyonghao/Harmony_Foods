@@ -1,5 +1,5 @@
 import relationalStore from '@ohos.data.relationalStore';
-import { FoodItem, DietRecordItem, FavoriteFoodItem, UserProfile, UserAccount } from '../models/FoodItem';
+import { FoodItem, DietRecordItem, FavoriteFoodItem, UserProfile, UserAccount, LoginResult } from '../models/FoodItem';
 
 const STORE_CONFIG: relationalStore.StoreConfig = {
   name: 'HarmonyFoods.db',
@@ -568,7 +568,7 @@ export class FoodDBHelper {
       if (count === 0) {
         const bucket: relationalStore.ValuesBucket = {
           'userId': 10000,
-          'account': '10000',
+          'account': '健康探索者',
           'password': '123456',
           'nickname': '健康探索者',
           'avatar': '🍎',
@@ -652,6 +652,68 @@ export class FoodDBHelper {
       }
     } catch (err) {
       console.error('FoodDBHelper', 'saveUserProfile failed', err);
+    }
+  }
+
+  static async loginByName(name: string, pass: string): Promise<LoginResult> {
+    if (!rdbStore) return { success: false, message: '数据库未就绪' };
+    let cleanName = name.trim();
+    let cleanPass = pass.trim();
+    try {
+      let pred = new relationalStore.RdbPredicates('user_account');
+      pred.equalTo('nickname', cleanName).or().equalTo('account', cleanName);
+      let res = await rdbStore.query(pred, ['userId', 'account', 'password', 'nickname', 'avatar', 'createdAt']);
+      if (res.goToNextRow()) {
+        let savedPass = res.getString(res.getColumnIndex('password'));
+        if (savedPass !== cleanPass) {
+          res.close();
+          return { success: false, message: '密码错误，请重新输入' };
+        }
+        let u: UserAccount = {
+          userId: res.getLong(res.getColumnIndex('userId')),
+          account: res.getString(res.getColumnIndex('account')),
+          password: savedPass,
+          nickname: res.getString(res.getColumnIndex('nickname')),
+          avatar: res.getString(res.getColumnIndex('avatar')),
+          createdAt: res.getLong(res.getColumnIndex('createdAt'))
+        };
+        res.close();
+        let p = await FoodDBHelper.getUserProfile();
+        p.id = u.userId.toString();
+        p.nickname = u.nickname;
+        p.avatar = u.avatar;
+        await FoodDBHelper.saveUserProfile(p);
+        return { success: true, user: u, isNew: false };
+      }
+      res.close();
+
+      // 用户名不存在，自动创建新账号并分配自增 ID (10000, 10001...)
+      let now = Date.now();
+      const bucket: relationalStore.ValuesBucket = {
+        'account': cleanName,
+        'password': cleanPass,
+        'nickname': cleanName,
+        'avatar': '🍎',
+        'createdAt': now
+      };
+      let rowId = await rdbStore.insert('user_account', bucket);
+      let newUser: UserAccount = {
+        userId: rowId,
+        account: cleanName,
+        password: cleanPass,
+        nickname: cleanName,
+        avatar: '🍎',
+        createdAt: now
+      };
+      let p = await FoodDBHelper.getUserProfile();
+      p.id = rowId.toString();
+      p.nickname = cleanName;
+      p.avatar = '🍎';
+      await FoodDBHelper.saveUserProfile(p);
+      return { success: true, user: newUser, isNew: true };
+    } catch (err) {
+      console.error('FoodDBHelper', 'loginByName failed', err);
+      return { success: false, message: '登录失败，请稍后重试' };
     }
   }
 

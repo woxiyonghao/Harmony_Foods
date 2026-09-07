@@ -1,20 +1,15 @@
 import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';
 import { AppTheme } from '../common/constants/AppTheme';
-import { UserAccount } from '../common/models/FoodItem';
 import { FoodDBHelper } from '../common/utils/FoodDBHelper';
 
 @Entry
 @Component
 struct LoginPage {
-  @State isRegisterMode: boolean = false;
-  @State accountInput: string = '10000';
-  @State passwordInput: string = '123456';
-  @State nicknameInput: string = '健康探索者';
-  @State selectedAvatar: string = '🍎';
+  @State nameInput: string = '';
+  @State passwordInput: string = '';
   @State agreedPolicy: boolean = true;
-
-  private avatars: string[] = ['🍎', '😊', '🏃', '🥗', '🥑', '🚴', '🧘', '💪'];
+  @State isPasswordVisible: boolean = false;
 
   async aboutToAppear() {
     let context = getContext(this);
@@ -22,81 +17,45 @@ struct LoginPage {
   }
 
   async handleLogin() {
+    let cleanName = this.nameInput.trim();
+    let cleanPass = this.passwordInput.trim();
+
+    if (cleanName === '') {
+      try {
+        promptAction.showToast({ message: '请输入名字' });
+      } catch (e) {}
+      return;
+    }
+
+    if (cleanPass === '') {
+      try {
+        promptAction.showToast({ message: '请输入密码' });
+      } catch (e) {}
+      return;
+    }
+
     if (!this.agreedPolicy) {
       try {
-        promptAction.showToast({ message: '请先阅读并同意隐私政策与用户协议' });
+        promptAction.showToast({ message: '请先阅读并同意隐私政策与声明' });
       } catch (e) {}
       return;
     }
 
-    if (this.accountInput.trim() === '') {
+    let result = await FoodDBHelper.loginByName(cleanName, cleanPass);
+    if (result.success && result.user) {
       try {
-        promptAction.showToast({ message: '请输入登录账号或用户ID' });
-      } catch (e) {}
-      return;
-    }
-
-    let user = await FoodDBHelper.loginUser(this.accountInput.trim(), this.passwordInput.trim());
-    if (user) {
-      try {
-        promptAction.showToast({ message: `欢迎回来，${user.nickname} (ID: ${user.userId})` });
+        if (result.isNew) {
+          promptAction.showToast({ message: `欢迎您，${result.user.nickname}！已分配专属 ID: ${result.user.userId}` });
+        } else {
+          promptAction.showToast({ message: `欢迎回来，${result.user.nickname} (ID: ${result.user.userId})` });
+        }
       } catch (e) {}
       try {
         router.replaceUrl({ url: 'pages/Index' });
       } catch (e) {}
     } else {
       try {
-        promptAction.showToast({ message: '账号或密码不正确，请重试' });
-      } catch (e) {}
-    }
-  }
-
-  async handleRegister() {
-    if (!this.agreedPolicy) {
-      try {
-        promptAction.showToast({ message: '请先阅读并同意隐私政策与用户协议' });
-      } catch (e) {}
-      return;
-    }
-
-    if (this.accountInput.trim() === '' || this.passwordInput.trim() === '') {
-      try {
-        promptAction.showToast({ message: '账号与密码不能为空' });
-      } catch (e) {}
-      return;
-    }
-
-    let user = await FoodDBHelper.registerUser(
-      this.accountInput.trim(),
-      this.passwordInput.trim(),
-      this.nicknameInput.trim(),
-      this.selectedAvatar
-    );
-
-    if (user) {
-      try {
-        promptAction.showToast({ message: `注册成功！分配到专属健康 ID: ${user.userId}` });
-      } catch (e) {}
-      try {
-        router.replaceUrl({ url: 'pages/Index' });
-      } catch (e) {}
-    } else {
-      try {
-        promptAction.showToast({ message: '账号已存在，请直接登录或更换账号名' });
-      } catch (e) {}
-    }
-  }
-
-  async handleQuickLogin() {
-    this.accountInput = '10000';
-    this.passwordInput = '123456';
-    let user = await FoodDBHelper.loginUser('10000', '123456');
-    if (user) {
-      try {
-        promptAction.showToast({ message: '已使用默认用户 (ID: 10000) 快速登录' });
-      } catch (e) {}
-      try {
-        router.replaceUrl({ url: 'pages/Index' });
+        promptAction.showToast({ message: result.message || '登录失败，请检查密码' });
       } catch (e) {}
     }
   }
@@ -104,8 +63,8 @@ struct LoginPage {
   build() {
     Column() {
       Scroll() {
-        Column({ space: 20 }) {
-          // 顶部 Logo 与应用名称
+        Column({ space: 24 }) {
+          // 顶部 Logo 与应用标题
           Column({ space: 8 }) {
             Stack() {
               Circle({ width: 84, height: 84 }).fill('#E8F5E9')
@@ -123,137 +82,69 @@ struct LoginPage {
               .fontWeight(FontWeight.Medium)
           }
           .width('100%')
-          .padding({ top: 40, bottom: 10 })
+          .padding({ top: 48, bottom: 12 })
           .alignItems(HorizontalAlign.Center)
 
-          // 模式切换卡片 (登录 / 注册)
-          Row() {
-            Button('账号登录')
-              .layoutWeight(1)
-              .height(40)
-              .fontSize(14)
-              .fontWeight(this.isRegisterMode ? FontWeight.Normal : FontWeight.Bold)
-              .fontColor(this.isRegisterMode ? '#666666' : AppTheme.PRIMARY_COLOR)
-              .backgroundColor(this.isRegisterMode ? 'transparent' : Color.White)
-              .borderRadius(20)
-              .onClick(() => {
-                this.isRegisterMode = false;
-                this.accountInput = '10000';
-                this.passwordInput = '123456';
-              })
-
-            Button('快速注册')
-              .layoutWeight(1)
-              .height(40)
-              .fontSize(14)
-              .fontWeight(this.isRegisterMode ? FontWeight.Bold : FontWeight.Normal)
-              .fontColor(this.isRegisterMode ? AppTheme.PRIMARY_COLOR : '#666666')
-              .backgroundColor(this.isRegisterMode ? Color.White : 'transparent')
-              .borderRadius(20)
-              .onClick(() => {
-                this.isRegisterMode = true;
-                this.accountInput = '';
-                this.passwordInput = '';
-              })
-          }
-          .width('100%')
-          .padding(4)
-          .backgroundColor('#EBEBEB')
-          .borderRadius(24)
-
-          // 表单卡片
-          Column({ space: 14 }) {
-            // 账号输入行
+          // 登录表单卡片
+          Column({ space: 18 }) {
+            // 名字输入项 (只允许输入名字，不允许输入 ID)
             Column({ space: 6 }) {
-              Text(this.isRegisterMode ? '注册账号 / 手机号' : '用户账号 / ID')
-                .fontSize(13)
-                .fontColor('#666666')
+              Text('名字')
+                .fontSize(14)
+                .fontWeight(FontWeight.Medium)
+                .fontColor('#444444')
                 .width('100%')
 
-              TextInput({ text: this.accountInput, placeholder: this.isRegisterMode ? '请输入用于注册的账号' : '例如 10000' })
+              TextInput({ text: this.nameInput, placeholder: '请输入名字' })
                 .height(48)
                 .fontSize(15)
                 .backgroundColor('#F7F8FA')
                 .borderRadius(12)
                 .padding({ left: 14, right: 14 })
                 .onChange((val: string) => {
-                  this.accountInput = val;
+                  this.nameInput = val;
                 })
             }
             .width('100%')
 
-            // 密码输入行
+            // 登录密码输入项
             Column({ space: 6 }) {
               Text('登录密码')
-                .fontSize(13)
-                .fontColor('#666666')
+                .fontSize(14)
+                .fontWeight(FontWeight.Medium)
+                .fontColor('#444444')
                 .width('100%')
 
-              TextInput({ text: this.passwordInput, placeholder: '请输入密码 (默认 123456)' })
-                .type(InputType.Password)
-                .height(48)
-                .fontSize(15)
-                .backgroundColor('#F7F8FA')
-                .borderRadius(12)
-                .padding({ left: 14, right: 14 })
-                .onChange((val: string) => {
-                  this.passwordInput = val;
+              Row() {
+                TextInput({
+                  text: this.passwordInput,
+                  placeholder: '请输入密码'
                 })
-            }
-            .width('100%')
-
-            // 注册模式特有字段：昵称与头像选择
-            if (this.isRegisterMode) {
-              Column({ space: 6 }) {
-                Text('个性昵称')
-                  .fontSize(13)
-                  .fontColor('#666666')
-                  .width('100%')
-
-                TextInput({ text: this.nicknameInput, placeholder: '例如 健康新星' })
+                  .type(this.isPasswordVisible ? InputType.Normal : InputType.Password)
                   .height(48)
                   .fontSize(15)
+                  .layoutWeight(1)
                   .backgroundColor('#F7F8FA')
                   .borderRadius(12)
                   .padding({ left: 14, right: 14 })
                   .onChange((val: string) => {
-                    this.nicknameInput = val;
+                    this.passwordInput = val;
+                  })
+
+                Text(this.isPasswordVisible ? '🙈' : '👁️')
+                  .fontSize(18)
+                  .padding({ left: 10, right: 12, top: 12, bottom: 12 })
+                  .onClick(() => {
+                    this.isPasswordVisible = !this.isPasswordVisible;
                   })
               }
               .width('100%')
-
-              Column({ space: 8 }) {
-                Text('选择专属初始形象')
-                  .fontSize(13)
-                  .fontColor('#666666')
-                  .width('100%')
-
-                Row({ space: 6 }) {
-                  ForEach(this.avatars, (av: string) => {
-                    Text(av)
-                      .fontSize(24)
-                      .padding(6)
-                      .borderRadius(12)
-                      .backgroundColor(this.selectedAvatar === av ? '#E8F5E9' : '#F5F5F5')
-                      .border({
-                        width: 1.5,
-                        color: this.selectedAvatar === av ? AppTheme.PRIMARY_COLOR : 'transparent'
-                      })
-                      .onClick(() => {
-                        this.selectedAvatar = av;
-                      })
-                  })
-                }.width('100%').justifyContent(FlexAlign.SpaceBetween)
-
-                Text('💡 提示：新用户注册将自动获得从 10000 起自增分配的专属健康 ID。')
-                  .fontSize(11)
-                  .fontColor('#999999')
-                  .margin({ top: 4 })
-              }
-              .width('100%')
+              .backgroundColor('#F7F8FA')
+              .borderRadius(12)
             }
+            .width('100%')
 
-            // 隐私政策勾选条
+            // 隐私政策勾选行
             Row({ space: 6 }) {
               Toggle({ type: ToggleType.Checkbox, isOn: this.agreedPolicy })
                 .selectedColor(AppTheme.PRIMARY_COLOR)
@@ -278,11 +169,11 @@ struct LoginPage {
                 })
             }
             .width('100%')
-            .margin({ top: 8, bottom: 4 })
+            .margin({ top: 4, bottom: 4 })
             .alignItems(VerticalAlign.Center)
 
-            // 主提交按钮
-            Button(this.isRegisterMode ? '立即注册并登录' : '登 录')
+            // 登录按钮
+            Button('登 录')
               .width('100%')
               .height(48)
               .fontSize(16)
@@ -292,35 +183,16 @@ struct LoginPage {
               .borderRadius(24)
               .shadow({ radius: 8, color: 'rgba(46, 139, 87, 0.3)', offsetY: 4 })
               .onClick(() => {
-                if (this.isRegisterMode) {
-                  this.handleRegister();
-                } else {
-                  this.handleLogin();
-                }
+                this.handleLogin();
               })
-
-            // 快捷免密体验入口
-            if (!this.isRegisterMode) {
-              Button('一键体验登录 (ID: 10000)')
-                .width('100%')
-                .height(44)
-                .fontSize(14)
-                .fontColor(AppTheme.PRIMARY_COLOR)
-                .backgroundColor('#E8F5E9')
-                .borderRadius(22)
-                .margin({ top: 8 })
-                .onClick(() => {
-                  this.handleQuickLogin();
-                })
-            }
           }
           .width('100%')
-          .padding(20)
+          .padding(24)
           .backgroundColor(Color.White)
           .borderRadius(16)
           .shadow({ radius: 8, color: 'rgba(0,0,0,0.03)', offsetY: 4 })
 
-          // 底部提示
+          // 底部说明
           Text('端侧安全运行 · 100% 离线数据存储')
             .fontSize(11)
             .fontColor('#AAAAAA')

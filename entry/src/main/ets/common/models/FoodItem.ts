@@ -59,4 +59,12 @@ export interface UserAccount {
   createdAt: number;
 }
 
+export interface LoginResult {
+  success: boolean;
+  user?: UserAccount;
+  isNew?: boolean;
+  message?: string;
+}
+
+
 
