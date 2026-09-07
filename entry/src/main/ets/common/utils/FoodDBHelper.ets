@@ -1,5 +1,5 @@
 import relationalStore from '@ohos.data.relationalStore';
-import { FoodItem, DietRecordItem, FavoriteFoodItem, UserProfile } from '../models/FoodItem';
+import { FoodItem, DietRecordItem, FavoriteFoodItem, UserProfile, UserAccount } from '../models/FoodItem';
 
 const STORE_CONFIG: relationalStore.StoreConfig = {
   name: 'HarmonyFoods.db',
@@ -10,6 +10,7 @@ const SQL_CREATE_CUSTOM_FOOD_TABLE = 'CREATE TABLE IF NOT EXISTS custom_food (id
 const SQL_CREATE_DIET_RECORD_TABLE = 'CREATE TABLE IF NOT EXISTS diet_record (id TEXT PRIMARY KEY, date TEXT, mealType TEXT, foodName TEXT, amount TEXT, energy INTEGER, protein REAL, fat REAL, carbs REAL, createdAt INTEGER)';
 const SQL_CREATE_FAVORITE_FOOD_TABLE = 'CREATE TABLE IF NOT EXISTS favorite_food (id TEXT PRIMARY KEY, name TEXT, energy INTEGER, defaultAmount TEXT, categoryId INTEGER, createdAt INTEGER)';
 const SQL_CREATE_USER_PROFILE_TABLE = 'CREATE TABLE IF NOT EXISTS user_profile (id TEXT PRIMARY KEY, nickname TEXT, avatar TEXT, height REAL, weight REAL, targetGoal TEXT, targetEnergy INTEGER, diseaseTags TEXT, scoreWeight TEXT, lastBackupTime TEXT)';
+const SQL_CREATE_USER_ACCOUNT_TABLE = 'CREATE TABLE IF NOT EXISTS user_account (userId INTEGER PRIMARY KEY AUTOINCREMENT, account TEXT UNIQUE, password TEXT, nickname TEXT, avatar TEXT, createdAt INTEGER)';
 
 let rdbStore: relationalStore.RdbStore | null = null;
 
@@ -135,8 +136,10 @@ export class FoodDBHelper {
         await rdbStore.executeSql(SQL_CREATE_DIET_RECORD_TABLE);
         await rdbStore.executeSql(SQL_CREATE_FAVORITE_FOOD_TABLE);
         await rdbStore.executeSql(SQL_CREATE_USER_PROFILE_TABLE);
+        await rdbStore.executeSql(SQL_CREATE_USER_ACCOUNT_TABLE);
         await FoodDBHelper.cleanLegacySeedRecords();
         await FoodDBHelper.seedInitialFavoritesIfEmpty();
+        await FoodDBHelper.seedInitialAccountIfEmpty();
         await FoodDBHelper.seedInitialProfileIfEmpty();
       }
     } catch (err) {
@@ -538,14 +541,14 @@ export class FoodDBHelper {
       res.close();
       if (count === 0) {
         await FoodDBHelper.saveUserProfile({
-          id: 'default_user',
+          id: '10000',
           nickname: '健康探索者',
-          avatar: '😊',
+          avatar: '🍎',
           height: 175,
           weight: 70,
           targetGoal: '减重 5kg',
           targetEnergy: 2100,
-          diseaseTags: '高尿酸,轻度脂肪肝',
+          diseaseTags: '高尿酸 / 轻度脂肪肝',
           scoreWeight: '已调高风险指标',
           lastBackupTime: '昨天'
         });
@@ -555,16 +558,39 @@ export class FoodDBHelper {
     }
   }
 
+  static async seedInitialAccountIfEmpty(): Promise<void> {
+    if (!rdbStore) return;
+    try {
+      let pred = new relationalStore.RdbPredicates('user_account');
+      let res = await rdbStore.query(pred, ['userId']);
+      let count = res.rowCount;
+      res.close();
+      if (count === 0) {
+        const bucket: relationalStore.ValuesBucket = {
+          'userId': 10000,
+          'account': '10000',
+          'password': '123456',
+          'nickname': '健康探索者',
+          'avatar': '🍎',
+          'createdAt': Date.now()
+        };
+        await rdbStore.insert('user_account', bucket);
+      }
+    } catch (err) {
+      console.error('FoodDBHelper', 'Seed user account failed', err);
+    }
+  }
+
   static async getUserProfile(): Promise<UserProfile> {
     let def: UserProfile = {
-      id: 'default_user',
+      id: '10000',
       nickname: '健康探索者',
-      avatar: '😊',
+      avatar: '🍎',
       height: 175,
       weight: 70,
       targetGoal: '减重 5kg',
       targetEnergy: 2100,
-      diseaseTags: '高尿酸,轻度脂肪肝',
+      diseaseTags: '高尿酸 / 轻度脂肪肝',
       scoreWeight: '已调高风险指标',
       lastBackupTime: '昨天'
     };
@@ -573,8 +599,12 @@ export class FoodDBHelper {
       let pred = new relationalStore.RdbPredicates('user_profile');
       let resultSet = await rdbStore.query(pred, ['id', 'nickname', 'avatar', 'height', 'weight', 'targetGoal', 'targetEnergy', 'diseaseTags', 'scoreWeight', 'lastBackupTime']);
       if (resultSet.goToNextRow()) {
+        let loadedId = resultSet.getString(resultSet.getColumnIndex('id'));
+        if (loadedId === 'default_user') {
+          loadedId = '10000';
+        }
         let p: UserProfile = {
-          id: resultSet.getString(resultSet.getColumnIndex('id')),
+          id: loadedId,
           nickname: resultSet.getString(resultSet.getColumnIndex('nickname')),
           avatar: resultSet.getString(resultSet.getColumnIndex('avatar')),
           height: resultSet.getDouble(resultSet.getColumnIndex('height')),
@@ -598,9 +628,9 @@ export class FoodDBHelper {
   static async saveUserProfile(profile: UserProfile): Promise<void> {
     if (!rdbStore) return;
     const valueBucket: relationalStore.ValuesBucket = {
-      'id': profile.id || 'default_user',
+      'id': profile.id || '10000',
       'nickname': profile.nickname || '健康探索者',
-      'avatar': profile.avatar || '😊',
+      'avatar': profile.avatar || '🍎',
       'height': profile.height || 175,
       'weight': profile.weight || 70,
       'targetGoal': profile.targetGoal || '保持健康',
@@ -622,6 +652,105 @@ export class FoodDBHelper {
       }
     } catch (err) {
       console.error('FoodDBHelper', 'saveUserProfile failed', err);
+    }
+  }
+
+  static async loginUser(account: string, pass: string): Promise<UserAccount | null> {
+    if (!rdbStore) return null;
+    try {
+      let pred = new relationalStore.RdbPredicates('user_account');
+      pred.equalTo('account', account.trim());
+      pred.equalTo('password', pass.trim());
+      let res = await rdbStore.query(pred, ['userId', 'account', 'password', 'nickname', 'avatar', 'createdAt']);
+      if (res.goToNextRow()) {
+        let u: UserAccount = {
+          userId: res.getLong(res.getColumnIndex('userId')),
+          account: res.getString(res.getColumnIndex('account')),
+          password: res.getString(res.getColumnIndex('password')),
+          nickname: res.getString(res.getColumnIndex('nickname')),
+          avatar: res.getString(res.getColumnIndex('avatar')),
+          createdAt: res.getLong(res.getColumnIndex('createdAt'))
+        };
+        res.close();
+        // 更新当前主 profile
+        let p = await FoodDBHelper.getUserProfile();
+        p.id = u.userId.toString();
+        p.nickname = u.nickname;
+        p.avatar = u.avatar;
+        await FoodDBHelper.saveUserProfile(p);
+        return u;
+      }
+      res.close();
+    } catch (err) {
+      console.error('FoodDBHelper', 'loginUser failed', err);
+    }
+    return null;
+  }
+
+  static async registerUser(account: string, pass: string, nickname?: string, avatar?: string): Promise<UserAccount | null> {
+    if (!rdbStore) return null;
+    try {
+      let nick = nickname && nickname.trim() !== '' ? nickname.trim() : '健康新星';
+      let av = avatar || '🥗';
+      let now = Date.now();
+      const bucket: relationalStore.ValuesBucket = {
+        'account': account.trim(),
+        'password': pass.trim(),
+        'nickname': nick,
+        'avatar': av,
+        'createdAt': now
+      };
+      let rowId = await rdbStore.insert('user_account', bucket);
+      let u: UserAccount = {
+        userId: rowId,
+        account: account.trim(),
+        password: pass.trim(),
+        nickname: nick,
+        avatar: av,
+        createdAt: now
+      };
+      let p = await FoodDBHelper.getUserProfile();
+      p.id = rowId.toString();
+      p.nickname = nick;
+      p.avatar = av;
+      await FoodDBHelper.saveUserProfile(p);
+      return u;
+    } catch (err) {
+      console.error('FoodDBHelper', 'registerUser failed', err);
+      return null;
+    }
+  }
+
+  static async deleteAccount(): Promise<void> {
+    if (!rdbStore) return;
+    try {
+      let p = await FoodDBHelper.getUserProfile();
+      let uid = parseInt(p.id) || 10000;
+      let predAcc = new relationalStore.RdbPredicates('user_account');
+      predAcc.equalTo('userId', uid);
+      await rdbStore.delete(predAcc);
+
+      // 清空用户饮食记录与收藏
+      await FoodDBHelper.clearAllDietRecords();
+      let predFav = new relationalStore.RdbPredicates('favorite_food');
+      await rdbStore.delete(predFav);
+
+      // 重置资料为初始状态
+      let def: UserProfile = {
+        id: '10000',
+        nickname: '健康探索者',
+        avatar: '🍎',
+        height: 175,
+        weight: 70,
+        targetGoal: '减重 5kg',
+        targetEnergy: 2100,
+        diseaseTags: '无特殊疾病',
+        scoreWeight: '均衡模式',
+        lastBackupTime: '未备份'
+      };
+      await FoodDBHelper.saveUserProfile(def);
+    } catch (err) {
+      console.error('FoodDBHelper', 'deleteAccount failed', err);
     }
   }
 

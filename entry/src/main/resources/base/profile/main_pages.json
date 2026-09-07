@@ -2,6 +2,15 @@
   "src": [
     "pages/Index",
     "pages/FoodComparePage",
-    "pages/EditProfilePage"
+    "pages/EditProfilePage",
+    "pages/BodyDataPage",
+    "pages/HealthGoalPage",
+    "pages/DiseaseTagsPage",
+    "pages/ScoreWeightPage",
+    "pages/ExportDataPage",
+    "pages/DataManagePage",
+    "pages/AboutPage",
+    "pages/PrivacyPolicyPage",
+    "pages/LoginPage"
   ]
 }

@@ -234,7 +234,7 @@ struct EditProfilePage {
                 .fontSize(14)
                 .fontColor('#666666')
               Blank()
-              Text('88481234')
+              Text(this.profile.id)
                 .fontSize(14)
                 .fontWeight(FontWeight.Medium)
                 .fontColor('#333333')

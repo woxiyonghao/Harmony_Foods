@@ -50,3 +50,13 @@ export interface UserProfile {
   lastBackupTime: string;
 }
 
+export interface UserAccount {
+  userId: number;
+  account: string;
+  password: string;
+  nickname: string;
+  avatar: string;
+  createdAt: number;
+}
+
+
