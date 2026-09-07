@@ -133,6 +133,8 @@ export class FoodDBHelper {
         await rdbStore.executeSql(SQL_CREATE_CUSTOM_FOOD_TABLE);
         await rdbStore.executeSql(SQL_CREATE_DIET_RECORD_TABLE);
         await rdbStore.executeSql(SQL_CREATE_FAVORITE_FOOD_TABLE);
+        await FoodDBHelper.cleanLegacySeedRecords();
+        await FoodDBHelper.seedInitialFavoritesIfEmpty();
       }
     } catch (err) {
       console.error('FoodDBHelper', 'Init RDB failed', err);
@@ -348,67 +350,45 @@ export class FoodDBHelper {
     return list;
   }
 
-  // 初始化种子数据（若 diet_record 为空）
-  static async seedInitialDietRecordsIfEmpty(initialDateKey: string): Promise<void> {
+  // 清理历史种子/默认记录数据（删除以 seed_ 开头的记录）
+  static async cleanLegacySeedRecords(): Promise<void> {
     if (!rdbStore) return;
     try {
       let predicates = new relationalStore.RdbPredicates('diet_record');
-      let count = await rdbStore.query(predicates, ['id']);
-      let hasData = count.rowCount > 0;
-      count.close();
-      if (!hasData) {
-        // 初始写入 9月6日 / 今日 的经典数据，匹配设计原图
-        await FoodDBHelper.insertDietRecord({
-          id: 'seed_1',
-          date: initialDateKey,
-          mealType: '早餐',
-          foodName: '全麦面包',
-          amount: '100g',
-          energy: 247,
-          protein: 8.5,
-          fat: 3.4,
-          carbs: 46.0,
-          createdAt: Date.now() - 10000
-        });
-        await FoodDBHelper.insertDietRecord({
-          id: 'seed_2',
-          date: initialDateKey,
-          mealType: '早餐',
-          foodName: '纯牛奶',
-          amount: '250ml',
-          energy: 165,
-          protein: 8.0,
-          fat: 9.5,
-          carbs: 12.0,
-          createdAt: Date.now() - 9000
-        });
-        await FoodDBHelper.insertDietRecord({
-          id: 'seed_3',
-          date: initialDateKey,
-          mealType: '午餐',
-          foodName: '米饭',
-          amount: '150g',
-          energy: 174,
-          protein: 3.9,
-          fat: 0.5,
-          carbs: 38.9,
-          createdAt: Date.now() - 5000
-        });
-        await FoodDBHelper.insertDietRecord({
-          id: 'seed_4',
-          date: initialDateKey,
-          mealType: '午餐',
-          foodName: '西红柿炒鸡蛋',
-          amount: '200g',
-          energy: 240,
-          protein: 10.4,
-          fat: 16.2,
-          carbs: 13.0,
-          createdAt: Date.now() - 4000
-        });
-      }
+      predicates.beginsWith('id', 'seed_');
+      await rdbStore.delete(predicates);
+    } catch (err) {
+      console.error('FoodDBHelper', 'Clean legacy seed records failed', err);
+    }
+  }
 
-      // 初始化收藏夹种子（若为空）
+  // 清空所有饮食记录
+  static async clearAllDietRecords(): Promise<void> {
+    if (!rdbStore) return;
+    try {
+      let predicates = new relationalStore.RdbPredicates('diet_record');
+      await rdbStore.delete(predicates);
+    } catch (err) {
+      console.error('FoodDBHelper', 'Clear all diet records failed', err);
+    }
+  }
+
+  // 清空指定日期的饮食记录
+  static async clearDietRecordsByDate(date: string): Promise<void> {
+    if (!rdbStore) return;
+    try {
+      let predicates = new relationalStore.RdbPredicates('diet_record');
+      predicates.equalTo('date', date);
+      await rdbStore.delete(predicates);
+    } catch (err) {
+      console.error('FoodDBHelper', 'Clear diet records by date failed', err);
+    }
+  }
+
+  // 初始化收藏夹种子（若为空）
+  static async seedInitialFavoritesIfEmpty(): Promise<void> {
+    if (!rdbStore) return;
+    try {
       let favPred = new relationalStore.RdbPredicates('favorite_food');
       let favCount = await rdbStore.query(favPred, ['id']);
       let hasFav = favCount.rowCount > 0;
@@ -440,7 +420,13 @@ export class FoodDBHelper {
         });
       }
     } catch (err) {
-      console.error('FoodDBHelper', 'Seed initial data failed', err);
+      console.error('FoodDBHelper', 'Seed favorites failed', err);
     }
+  }
+
+  // 保留兼容函数，不再自动生成任何饮食记录种子，确保记录干净清爽
+  static async seedInitialDietRecordsIfEmpty(initialDateKey?: string): Promise<void> {
+    await FoodDBHelper.cleanLegacySeedRecords();
+    await FoodDBHelper.seedInitialFavoritesIfEmpty();
   }
 }

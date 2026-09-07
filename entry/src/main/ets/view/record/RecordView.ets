@@ -493,8 +493,6 @@ export struct RecordView {
   async aboutToAppear() {
     let context = getContext(this);
     await FoodDBHelper.init(context);
-    let todayKey = DateHelper.formatDateKey(this.selectedDate);
-    await FoodDBHelper.seedInitialDietRecordsIfEmpty(todayKey);
     await this.loadRecordsForCurrentDate();
   }
 
