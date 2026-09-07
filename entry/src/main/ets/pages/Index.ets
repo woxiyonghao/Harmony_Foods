@@ -30,17 +30,22 @@ struct Index {
   build() {
     Tabs({ barPosition: BarPosition.End, index: this.currentIndex }) {
       TabContent() {
-        HomeView()
+        HomeView({
+          activeTab: this.currentIndex,
+          onNavigateToRecord: () => {
+            this.currentIndex = 2;
+          }
+        })
       }
       .tabBar(this.TabBuilder('首页', 0, $r('app.media.ic_home')))
 
       TabContent() {
-        FoodLibraryView()
+        FoodLibraryView({ activeTab: this.currentIndex })
       }
       .tabBar(this.TabBuilder('食物库', 1, $r('app.media.ic_food')))
 
       TabContent() {
-        RecordView()
+        RecordView({ activeTab: this.currentIndex })
       }
       .tabBar(this.TabBuilder('记录', 2, $r('app.media.ic_record')))
 

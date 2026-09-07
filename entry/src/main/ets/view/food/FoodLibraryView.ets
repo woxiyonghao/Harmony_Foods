@@ -64,9 +64,11 @@ export struct AddFoodDialog {
 
 @Component
 export struct FoodLibraryView {
+  @Prop @Watch('onActiveTabChange') activeTab: number = 0;
   @State selectedCategoryIndex: number = 0;
   @State searchQuery: string = '';
   @State compareList: FoodItem[] = [];
+  @State favoriteNames: string[] = [];
 
   private categories: Category[] = [
     { name: '全部' },
@@ -133,6 +135,17 @@ export struct FoodLibraryView {
       // 保持原有内置食物在后面，新添加的在前面
       this.mockFoods = [...customFoods, ...this.mockFoods];
     }
+    await this.refreshFavorites();
+  }
+
+  async onActiveTabChange() {
+    if (this.activeTab === 1) {
+      await this.refreshFavorites();
+    }
+  }
+
+  async refreshFavorites() {
+    this.favoriteNames = await FoodDBHelper.getFavoriteNames();
   }
 
   dialogController: CustomDialogController = new CustomDialogController({
@@ -343,7 +356,23 @@ export struct FoodLibraryView {
     Row() {
       // 文本与指标标签区域 (居左，占满剩余空间)
       Column({ space: 6 }) {
-        Text(food.name).fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
+        Row({ space: 8 }) {
+          Text(food.name).fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
+          
+          // 收藏星星按钮
+          Image($r('app.media.ic_favorite'))
+            .width(18)
+            .height(18)
+            .fillColor(this.favoriteNames.indexOf(food.name) !== -1 ? '#FFB800' : '#D1D5DB')
+            .onClick(async () => {
+              let newState = await FoodDBHelper.toggleFavorite(food.name, food.energy, '100g', food.categoryId);
+              this.favoriteNames = await FoodDBHelper.getFavoriteNames();
+              try {
+                promptAction.showToast({ message: newState ? `已收藏：${food.name}` : `已取消收藏：${food.name}` });
+              } catch (e) {}
+            })
+        }.alignItems(VerticalAlign.Center)
+
         Text(`${food.energy} 千卡 / 100g`).fontSize(13).fontColor('#666666')
         
         Flex({ wrap: FlexWrap.Wrap }) {

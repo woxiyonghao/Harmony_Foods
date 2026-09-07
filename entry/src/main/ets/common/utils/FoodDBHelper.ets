@@ -409,6 +409,41 @@ export class FoodDBHelper {
     return list;
   }
 
+  static async getFavoriteNames(): Promise<string[]> {
+    if (!rdbStore) return [];
+    let predicates = new relationalStore.RdbPredicates('favorite_food');
+    let list: string[] = [];
+    try {
+      let resultSet = await rdbStore.query(predicates, ['name']);
+      while (resultSet.goToNextRow()) {
+        list.push(resultSet.getString(resultSet.getColumnIndex('name')));
+      }
+      resultSet.close();
+    } catch (err) {
+      console.error('FoodDBHelper', 'Query favorite names failed', err);
+    }
+    return list;
+  }
+
+  static async toggleFavorite(name: string, energy: number, defaultAmount: string = '100g', categoryId: number = 0): Promise<boolean> {
+    if (!rdbStore) return false;
+    let names = await FoodDBHelper.getFavoriteNames();
+    if (names.indexOf(name) !== -1) {
+      await FoodDBHelper.deleteFavoriteFood(name);
+      return false;
+    } else {
+      await FoodDBHelper.insertFavoriteFood({
+        id: `fav_${Date.now()}`,
+        name: name,
+        energy: energy,
+        defaultAmount: defaultAmount,
+        categoryId: categoryId,
+        createdAt: Date.now()
+      });
+      return true;
+    }
+  }
+
   // 清理历史种子/默认记录数据（删除以 seed_ 开头的记录）
   static async cleanLegacySeedRecords(): Promise<void> {
     if (!rdbStore) return;

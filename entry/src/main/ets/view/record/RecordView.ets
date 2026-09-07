@@ -326,7 +326,7 @@ export struct FavoriteFoodsDialog {
       if (this.favorites.length === 0) {
         Column({ space: 8 }) {
           Text('暂无收藏食物').fontSize(14).fontColor('#999999')
-          Text('常吃的美味可一键收藏在此快速记录').fontSize(12).fontColor('#CCCCCC')
+          Text('在食物库或今日饮食中点击 ⭐ 即可一键收藏').fontSize(12).fontColor('#CCCCCC')
         }
         .width('100%')
         .padding({ top: 30, bottom: 30 })
@@ -340,6 +340,22 @@ export struct FavoriteFoodsDialog {
                   Text(fav.name).fontSize(14).fontWeight(FontWeight.Medium).fontColor('#333333')
                   Text(`${fav.defaultAmount} · ${fav.energy} 千卡`).fontSize(12).fontColor('#888888')
                 }.alignItems(HorizontalAlign.Start).layoutWeight(1)
+
+                // 点击金色星星可快速取消收藏
+                Image($r('app.media.ic_favorite'))
+                  .width(20)
+                  .height(20)
+                  .fillColor('#FFB800')
+                  .margin({ right: 10 })
+                  .onClick(async () => {
+                    await FoodDBHelper.deleteFavoriteFood(fav.name);
+                    this.favorites = await FoodDBHelper.getFavoriteFoods();
+                    try {
+                      promptAction.showToast({ message: `已取消收藏：${fav.name}` });
+                    } catch (err) {
+                      console.error('FavoriteFoodsDialog', 'delete error', err);
+                    }
+                  })
 
                 Button('+ 添加')
                   .type(ButtonType.Capsule)
@@ -460,9 +476,11 @@ export struct QuickEntryDialog {
 
 @Component
 export struct RecordView {
+  @Prop @Watch('onActiveTabChange') activeTab: number = 0;
   @State selectedDate: Date = new Date();
   @State dateText: string = '9月6日 今天';
   @State totalDailyEnergy: number = 0;
+  @State favoriteNames: string[] = [];
   @State meals: MealSlot[] = [
     {
       title: '早餐',
@@ -500,10 +518,17 @@ export struct RecordView {
     await this.loadRecordsForCurrentDate();
   }
 
+  onActiveTabChange() {
+    if (this.activeTab === 2) {
+      this.loadRecordsForCurrentDate();
+    }
+  }
+
   async loadRecordsForCurrentDate() {
     this.dateText = DateHelper.formatDisplayDate(this.selectedDate);
     let dateKey = DateHelper.formatDateKey(this.selectedDate);
     let allDayRecords = await FoodDBHelper.getDietRecordsByDate(dateKey);
+    this.favoriteNames = await FoodDBHelper.getFavoriteNames();
     
     let total = 0;
     for (let r of allDayRecords) {
@@ -799,7 +824,21 @@ export struct RecordView {
                 Text(food.amount).fontSize(12).fontColor('#999999').margin({ top: 4 })
               }.alignItems(HorizontalAlign.Start).layoutWeight(1)
               
-              Text(`${food.energy} 千卡`).fontSize(14).fontColor('#555555').margin({ right: 10 })
+              Text(`${food.energy} 千卡`).fontSize(14).fontColor('#555555').margin({ right: 8 })
+
+              // 收藏/取消收藏星星按钮
+              Image($r('app.media.ic_favorite'))
+                .width(18)
+                .height(18)
+                .fillColor(this.favoriteNames.indexOf(food.foodName) !== -1 ? '#FFB800' : '#D1D5DB')
+                .margin({ right: 8 })
+                .onClick(async () => {
+                  let newState = await FoodDBHelper.toggleFavorite(food.foodName, food.energy, food.amount);
+                  this.favoriteNames = await FoodDBHelper.getFavoriteNames();
+                  try {
+                    promptAction.showToast({ message: newState ? `已加入收藏：${food.foodName}` : `已取消收藏：${food.foodName}` });
+                  } catch (err) {}
+                })
 
               // 删除按钮
               Button({ type: ButtonType.Circle }) {
