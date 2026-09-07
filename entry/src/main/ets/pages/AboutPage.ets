@@ -51,7 +51,7 @@ struct AboutPage {
               .fontWeight(FontWeight.Bold)
               .fontColor('#333333')
 
-            Text('版本 v1.2.0 Release')
+            Text('版本 v1.0.0 Release')
               .fontSize(12)
               .fontColor('#999999')
               .backgroundColor('#F5F5F5')
@@ -81,10 +81,10 @@ struct AboutPage {
             Divider().color('#F2F2F2').strokeWidth(1)
 
             Row({ space: 10 }) {
-              Text('🩺').fontSize(20)
+              Text('🥗').fontSize(20)
               Column({ space: 2 }) {
-                Text('慢病风险三色动态预警').fontSize(14).fontWeight(FontWeight.Medium).fontColor('#333333')
-                Text('针对高尿酸/痛风、高血压、高血脂，提供嘌呤、钠与胆固醇医学警戒线红绿灯提示。').fontSize(12).fontColor('#777777')
+                Text('重点营养素摄入参考').fontSize(14).fontWeight(FontWeight.Medium).fontColor('#333333')
+                Text('基于《中国居民膳食指南》，提供嘌呤、钠与胆固醇等重点成分的日常摄入平衡参考。').fontSize(12).fontColor('#777777')
               }.layoutWeight(1).alignItems(HorizontalAlign.Start)
             }.width('100%')
 
@@ -156,7 +156,7 @@ struct AboutPage {
             .onClick(() => {
               AlertDialog.show({
                 title: '用户使用规范',
-                message: '欢迎使用膳管家。本应用旨在为您提供科学、严谨的日常饮食营养辅助参考。本软件所有计算模型基于公开临床膳食指南，不构成任何处方性医疗诊断结论，疾病人群请遵医嘱。',
+                message: '欢迎使用膳管家。本应用旨在为您提供日常饮食营养辅助参考。本软件所有计算模型基于公开《中国居民膳食指南》，不构成任何处方性医疗诊断结论，疾病人群请遵医嘱。',
                 confirm: {
                   value: '我已知晓',
                   action: () => {}
@@ -166,26 +166,31 @@ struct AboutPage {
 
             Divider().color('#F2F2F2').strokeWidth(1).margin({ left: 48, right: 16 })
 
-            // 检查更新
+            // 应用版本与离线运行状态
             Row() {
               Image($r('app.media.ic_target'))
                 .width(20)
                 .height(20)
                 .margin({ right: 12 })
-              Text('检查应用更新')
+              Text('应用运行状态')
                 .fontSize(15)
                 .fontColor('#333333')
               Blank()
-              Text('当前已是最新版')
+              Text('v1.0.0 (离线单机版)')
                 .fontSize(12)
-                .fontColor('#999999')
+                .fontColor('#888888')
             }
             .width('100%')
             .padding({ top: 16, bottom: 16, left: 16, right: 16 })
             .onClick(() => {
-              try {
-                promptAction.showToast({ message: '当前已是最新版本 v1.2.0' });
-              } catch (e) {}
+              AlertDialog.show({
+                title: '运行模式说明',
+                message: '膳管家采用端侧离线优先架构（Offline-First），无需联网即可在本地设备完整使用全部记录、分析与食物库功能，数据安全自主。',
+                confirm: {
+                  value: '我知道了',
+                  action: () => {}
+                }
+              });
             })
           }
           .width('100%')

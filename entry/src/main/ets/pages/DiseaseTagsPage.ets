@@ -91,7 +91,7 @@ struct DiseaseTagsPage {
           } catch (e) {}
         })
 
-        Text('特殊疾病与关注标签')
+        Text('个性化膳食关注标签')
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .fontColor('#333333')
@@ -124,7 +124,7 @@ struct DiseaseTagsPage {
               .fontColor('#333333')
               .width('100%')
 
-            Text('系统将根据所选疾病在首页与分析中智能调整预警阈值与膳食建议')
+            Text('系统将根据您的偏好在首页与分析中智能调整重点营养素摄入建议')
               .fontSize(12)
               .fontColor('#888888')
               .width('100%')
@@ -156,9 +156,9 @@ struct DiseaseTagsPage {
           .borderRadius(16)
           .shadow({ radius: 8, color: 'rgba(0,0,0,0.03)', offsetY: 4 })
 
-          // 慢病营养调控说明卡片
+          // 营养参考说明卡片
           Column({ space: 14 }) {
-            Text('重点营养素监控与警戒线')
+            Text('重点营养素参考值说明 (基于膳食指南)')
               .fontSize(16)
               .fontWeight(FontWeight.Bold)
               .fontColor('#333333')
@@ -169,9 +169,9 @@ struct DiseaseTagsPage {
               Column({ space: 4 }) {
                 Row({ space: 6 }) {
                   Text('嘌呤 (mg)').fontSize(14).fontWeight(FontWeight.Bold).fontColor('#333333')
-                  Text('关联：高尿酸/痛风').fontSize(11).fontColor(AppTheme.PRIMARY_COLOR)
+                  Text('关注：控酸饮食人群').fontSize(11).fontColor(AppTheme.PRIMARY_COLOR)
                 }
-                Text('每日安全上限 ≤ 200mg，严格避免高嘌呤海鲜、肉汤与动物内脏').fontSize(12).fontColor('#777777')
+                Text('建议日常参考上限 ≤ 200mg，少饮浓肉汤，避免过多高嘌呤海鲜与动物内脏').fontSize(12).fontColor('#777777')
               }.layoutWeight(1).alignItems(HorizontalAlign.Start)
             }
             .width('100%')
@@ -184,9 +184,9 @@ struct DiseaseTagsPage {
               Column({ space: 4 }) {
                 Row({ space: 6 }) {
                   Text('钠盐 (mg)').fontSize(14).fontWeight(FontWeight.Bold).fontColor('#333333')
-                  Text('关联：高血压').fontSize(11).fontColor(AppTheme.PRIMARY_COLOR)
+                  Text('关注：低盐清淡饮食').fontSize(11).fontColor(AppTheme.PRIMARY_COLOR)
                 }
-                Text('每日安全上限 ≤ 1500mg，减少腌制酱料、加工肉类，多摄入高钾蔬果').fontSize(12).fontColor('#777777')
+                Text('建议日常参考上限 ≤ 1500mg，减少高盐加工酱料，多摄入高钾新鲜蔬果').fontSize(12).fontColor('#777777')
               }.layoutWeight(1).alignItems(HorizontalAlign.Start)
             }
             .width('100%')
@@ -199,15 +199,22 @@ struct DiseaseTagsPage {
               Column({ space: 4 }) {
                 Row({ space: 6 }) {
                   Text('胆固醇 (mg)').fontSize(14).fontWeight(FontWeight.Bold).fontColor('#333333')
-                  Text('关联：高血脂/脂肪肝').fontSize(11).fontColor(AppTheme.PRIMARY_COLOR)
+                  Text('关注：轻脂少油饮食').fontSize(11).fontColor(AppTheme.PRIMARY_COLOR)
                 }
-                Text('每日安全上限 ≤ 200mg，控制动物油脂与油炸食品，补充优质膳食纤维').fontSize(12).fontColor('#777777')
+                Text('建议日常参考上限 ≤ 200mg，适度控制动物油脂与油炸食品，补充优质膳食纤维').fontSize(12).fontColor('#777777')
               }.layoutWeight(1).alignItems(HorizontalAlign.Start)
             }
             .width('100%')
             .padding(12)
             .backgroundColor('#F7F8FA')
             .borderRadius(10)
+
+            // 免责提示条
+            Text('💡 提示：以上营养素参考阈值来源于公开营养学健康科普资料，仅供日常饮食搭配参考，不具有医疗诊断意义，慢病人群请遵医嘱。')
+              .fontSize(11)
+              .fontColor('#999999')
+              .lineHeight(16)
+              .margin({ top: 4 })
           }
           .width('100%')
           .padding(20)

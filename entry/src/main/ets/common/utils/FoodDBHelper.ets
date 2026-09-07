@@ -847,4 +847,32 @@ export class FoodDBHelper {
     };
     return JSON.stringify(exportObj, null, 2);
   }
+
+  static async exportAllDataAsCsv(): Promise<string> {
+    let records = await FoodDBHelper.getAllDietRecords();
+    let header = '日期,餐段,食物名称,份量,摄入热量(kcal),蛋白质(g),脂肪(g),碳水(g)\n';
+    let rows = records.map((r: DietRecordItem) => {
+      let date = r.date || '';
+      let meal = r.mealType || '';
+      let name = (r.foodName || '').replace(/,/g, '，');
+      let amt = (r.amount || '').replace(/,/g, ' ');
+      let cal = r.energy || 0;
+      let p = r.protein || 0;
+      let f = r.fat || 0;
+      let c = r.carbs || 0;
+      return `${date},${meal},${name},${amt},${cal},${p},${f},${c}`;
+    }).join('\n');
+    return header + rows;
+  }
+
+  static async updateBackupTime(): Promise<string> {
+    let profile = await FoodDBHelper.getUserProfile();
+    let now = new Date();
+    let hours = now.getHours().toString().padStart(2, '0');
+    let minutes = now.getMinutes().toString().padStart(2, '0');
+    let timeStr = `今天 ${hours}:${minutes}`;
+    profile.lastBackupTime = timeStr;
+    await FoodDBHelper.saveUserProfile(profile);
+    return timeStr;
+  }
 }

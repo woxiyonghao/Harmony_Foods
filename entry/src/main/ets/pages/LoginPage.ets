@@ -8,7 +8,7 @@ import { FoodDBHelper } from '../common/utils/FoodDBHelper';
 struct LoginPage {
   @State nameInput: string = '';
   @State passwordInput: string = '';
-  @State agreedPolicy: boolean = true;
+  @State agreedPolicy: boolean = false;
   @State isPasswordVisible: boolean = false;
 
   async aboutToAppear() {
@@ -183,6 +183,21 @@ struct LoginPage {
               .shadow({ radius: 8, color: 'rgba(46, 139, 87, 0.3)', offsetY: 4 })
               .onClick(() => {
                 this.handleLogin();
+              })
+
+            // 游客免登录体验
+            Button('暂不登录，以游客身份体验')
+              .width('100%')
+              .height(44)
+              .fontSize(14)
+              .fontColor('#666666')
+              .backgroundColor('#F0F2F5')
+              .borderRadius(22)
+              .onClick(() => {
+                try {
+                  promptAction.showToast({ message: '已进入离线体验模式' });
+                  router.replaceUrl({ url: 'pages/Index' });
+                } catch (e) {}
               })
           }
           .width('100%')

@@ -1,6 +1,20 @@
 {
   "app": {
-    "signingConfigs": [],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "storeFile": "/Users/lusesi/Desktop/bbsfoods/cers/bbsfoods.p12",
+          "storePassword": "00000019DB6B504E5B15583C478FC21308563990E02AECDAF13B44E646ED23AC098F175E75220CEBB1",
+          "keyAlias": "bbsfoods",
+          "keyPassword": "00000019695B8277E3E0A4B9EE17FBD1ACFD36CD50951B5673FE251205F926B893307F0E05087026E9",
+          "signAlg": "SHA256withECDSA",
+          "profile": "/Users/lusesi/Desktop/bbsfoods/cers/bbsboods_porfile_relaseRelease.p7b",
+          "certpath": "/Users/lusesi/Desktop/bbsfoods/cers/com.winheo.bbsfoods.cer"
+        }
+      }
+    ],
     "products": [
       {
         "name": "default",

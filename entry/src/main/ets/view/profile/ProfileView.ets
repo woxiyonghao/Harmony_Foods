@@ -213,7 +213,7 @@ export struct ProfileView {
         this.openHealthGoalPage();
       })
       Divider().color('#F0F0F0').strokeWidth(1).margin({ left: 50, right: 16 })
-      this.MenuRow($r('app.media.ic_tag'), '特殊疾病标签', this.profile.diseaseTags || '无特殊疾病', () => {
+      this.MenuRow($r('app.media.ic_tag'), '个性化膳食关注标签', this.profile.diseaseTags || '无特殊关注', () => {
         this.openDiseaseTagsPage();
       })
     }
@@ -268,7 +268,7 @@ export struct ProfileView {
         Text('系统与账号').fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
       }.width('100%').padding({ left: 16, top: 16, bottom: 8 })
 
-      this.MenuRow($r('app.media.ic_target'), '关于膳管家', 'v1.2.0', () => {
+      this.MenuRow($r('app.media.ic_target'), '关于膳管家', 'v1.0.0', () => {
         this.openAboutPage();
       })
       Divider().color('#F0F0F0').strokeWidth(1).margin({ left: 50, right: 16 })

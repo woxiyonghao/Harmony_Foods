@@ -102,40 +102,40 @@ export struct HomeView {
 
   generateDynamicSuggestion(): string {
     if (this.todayRecords.length === 0) {
-      return '今日尚未录入饮食。点击下方「去记录」添加早、中、晚餐，系统将为您实时计算营养结构与慢病风险。';
+      return '今日尚未录入饮食。点击下方「去记录」添加早、中、晚餐，系统将为您实时计算营养结构与日常摄入平衡。';
     }
 
-    // 优先告警：钠超标或逼近上限 (2000mg)
+    // 钠摄入偏高提醒
     if (this.sodium > 1500) {
       let isOver = this.sodium > 2000;
-      return `今日钠摄入已达 ${this.sodium}mg${isOver ? '（已超安全上限2000mg）' : '（逼近上限）'}，建议后续餐食避免腌制食品与重口菜肴，尽量以清淡、水煮为主，并多喝温水促进代谢。`;
+      return `今日钠摄入已达 ${this.sodium}mg${isOver ? '（高于膳食推荐参考值2000mg）' : '（接近推荐值）'}，建议后续餐食以清淡少盐为主，减少高盐调味品，适当多饮水保持水分平衡。`;
     }
 
-    // 告警：嘌呤超标或偏高 (300mg)
+    // 嘌呤偏高提醒
     if (this.purine > 200) {
       let isOver = this.purine > 300;
-      return `今日嘌呤累计已达 ${this.purine}mg${isOver ? '（超标预警）' : '（偏高）'}，痛风与高尿酸人群需重点关注，避免浓肉汤、动物内脏及海鲜，建议每日多饮水（2000ml以上）促进尿酸排泄。`;
+      return `今日嘌呤累计已达 ${this.purine}mg${isOver ? '（处于较高水平）' : '（略微偏高）'}，关注嘌呤的朋友建议后续餐食适度减少动物内脏与浓肉汤，保证充足温水摄入。`;
     }
 
-    // 告警：胆固醇偏高 (300mg)
+    // 胆固醇偏高提醒
     if (this.cholesterol > 200) {
       let isOver = this.cholesterol > 300;
-      return `今日胆固醇摄入已达 ${this.cholesterol}mg${isOver ? '（已超标）' : '（偏高）'}，建议减少蛋黄、动物油脂及油炸食物摄入，适当补充富含膳食纤维的燕麦与新鲜蔬菜。`;
+      return `今日胆固醇摄入已达 ${this.cholesterol}mg${isOver ? '（高于推荐参考值300mg）' : '（偏高）'}，建议适度控制动物油脂与煎炸食物，适当补充富含膳食纤维的蔬菜与粗粮。`;
     }
 
-    // 告警：总热量超标
+    // 总热量提醒
     if (this.totalDailyEnergy > this.targetEnergy) {
       let overEnergy = this.totalDailyEnergy - this.targetEnergy;
-      return `今日摄入总热量已超出目标 ${overEnergy} 千卡，建议适当控制夜间加餐，餐后进行30分钟中低强度散步帮助能量消耗。`;
+      return `今日摄入总能量已超出预设目标 ${overEnergy} 千卡，建议适当控制夜间加餐，餐后适度散步活动帮助能量平衡。`;
     }
 
     // 脂肪供能比偏高
     let macro: MacroNutrientSummary = NutritionCalculator.aggregateMacros('今日', this.todayRecords);
     if (macro.fatPercent > 35) {
-      return `今日油脂供能比略高（${macro.fatPercent}%），建议减少烹饪用油，适度增加粗粮与新鲜叶菜摄入以平衡宏量结构。`;
+      return `今日油脂供能比略高（${macro.fatPercent}%），建议烹饪时适当减少食用油用量，适度增加粗粮与新鲜蔬菜以平衡营养比例。`;
     }
 
-    return '今日三餐宏量营养素结构均衡，各项慢病风险指标平稳达标。建议继续保持规律作息与优质水分补给！';
+    return '今日三餐宏量营养素结构良好，各项营养成分摄入平稳均衡。建议继续保持规律作息与充足水分补给！';
   }
 
   getScoreColor(): string {
@@ -151,14 +151,14 @@ export struct HomeView {
       return info;
     }
     if (this.purine > 300) {
-      let info: RiskBadgeInfo = { status: '超标', color: '#F44336', bgColor: '#FFEBEE' };
-      return info;
-    }
-    if (this.purine > 200) {
       let info: RiskBadgeInfo = { status: '偏高', color: '#FF9800', bgColor: '#FFF3E0' };
       return info;
     }
-    let info: RiskBadgeInfo = { status: '正常', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' };
+    if (this.purine > 200) {
+      let info: RiskBadgeInfo = { status: '适中', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' };
+      return info;
+    }
+    let info: RiskBadgeInfo = { status: '理想', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' };
     return info;
   }
 
@@ -168,14 +168,14 @@ export struct HomeView {
       return info;
     }
     if (this.sodium > 2000) {
-      let info: RiskBadgeInfo = { status: '超标', color: '#F44336', bgColor: '#FFEBEE' };
-      return info;
-    }
-    if (this.sodium > 1500) {
       let info: RiskBadgeInfo = { status: '偏高', color: '#FF9800', bgColor: '#FFF3E0' };
       return info;
     }
-    let info: RiskBadgeInfo = { status: '正常', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' };
+    if (this.sodium > 1500) {
+      let info: RiskBadgeInfo = { status: '适中', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' };
+      return info;
+    }
+    let info: RiskBadgeInfo = { status: '理想', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' };
     return info;
   }
 
@@ -185,14 +185,14 @@ export struct HomeView {
       return info;
     }
     if (this.cholesterol > 300) {
-      let info: RiskBadgeInfo = { status: '超标', color: '#F44336', bgColor: '#FFEBEE' };
-      return info;
-    }
-    if (this.cholesterol > 200) {
       let info: RiskBadgeInfo = { status: '偏高', color: '#FF9800', bgColor: '#FFF3E0' };
       return info;
     }
-    let info: RiskBadgeInfo = { status: '正常', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' };
+    if (this.cholesterol > 200) {
+      let info: RiskBadgeInfo = { status: '适中', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' };
+      return info;
+    }
+    let info: RiskBadgeInfo = { status: '理想', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' };
     return info;
   }
 
@@ -466,9 +466,9 @@ export struct HomeView {
   RiskIndicatorsSection() {
     Column({ space: 15 }) {
       Row() {
-        Text('风险指标 (今日)').fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
+        Text('重点营养素关注 (今日)').fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
         Blank()
-        Text('痛风 / 血压 / 血脂')
+        Text('膳食平衡参考')
           .fontSize(11)
           .fontColor('#999999')
       }
@@ -539,13 +539,25 @@ export struct HomeView {
     Column({ space: 10 }) {
       Row({ space: 8 }) {
         Text('💡').fontSize(18)
-        Text('健康建议').fontSize(16).fontWeight(FontWeight.Bold).fontColor(AppTheme.PRIMARY_COLOR)
+        Text('日常膳食平衡建议').fontSize(16).fontWeight(FontWeight.Bold).fontColor(AppTheme.PRIMARY_COLOR)
       }.width('100%')
 
       Text(this.suggestionText)
         .fontSize(13)
         .fontColor('#4A5568')
         .lineHeight(22)
+
+      Divider().color('#DCFCE7').strokeWidth(1).margin({ top: 4, bottom: 2 })
+
+      // 常驻医疗免责声明
+      Row({ space: 4 }) {
+        Text('⚠️ 免责声明：本应用所有数据与建议基于《中国居民膳食指南》等公开营养资料提供健康生活参考，不构成任何医疗诊断或治疗方案，慢病及特殊人群请遵医嘱。')
+          .fontSize(11)
+          .fontColor('#718096')
+          .lineHeight(16)
+      }
+      .width('100%')
+      .padding({ top: 4 })
     }
     .width('100%')
     .padding(20)

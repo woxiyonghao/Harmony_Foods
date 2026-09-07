@@ -64,7 +64,7 @@ export struct AnalysisView {
       unit: 'mg',
       threshold: 300,
       maxScale: 400,
-      desc: '痛风与高尿酸关注指标，单日安全上限 300mg'
+      desc: '膳食嘌呤关注指标，建议每日参考摄入控制在 300mg 以内'
     },
     {
       key: 'sodium',
@@ -72,7 +72,7 @@ export struct AnalysisView {
       unit: 'mg',
       threshold: 2000,
       maxScale: 2800,
-      desc: '高血压关注指标，低盐饮食安全上限 2000mg'
+      desc: '低盐饮食关注指标，建议每日参考摄入控制在 2000mg 以内'
     },
     {
       key: 'cholesterol',
@@ -80,7 +80,7 @@ export struct AnalysisView {
       unit: 'mg',
       threshold: 300,
       maxScale: 400,
-      desc: '心血管健康指标，单日摄入建议控制在 300mg 以内'
+      desc: '日常胆固醇关注指标，建议每日摄入控制在 300mg 以内'
     }
   ];
 
@@ -207,7 +207,7 @@ export struct AnalysisView {
         let risk: RiskNutrientSummary = NutritionCalculator.aggregateRisks(meal, recs);
         let val = this.selectedRiskType === 'purine' ? risk.purine : (this.selectedRiskType === 'sodium' ? risk.sodium : risk.cholesterol);
         let isWarn = val > cfg.threshold;
-        let hint = recs.length === 0 ? '未记录餐食' : (isWarn ? `已超单餐安全阈值(${cfg.threshold}${cfg.unit})` : '处于健康安全范围');
+        let hint = recs.length === 0 ? '未记录餐食' : (isWarn ? `高于单餐推荐值(${cfg.threshold}${cfg.unit})` : '处于平衡推荐范围');
         let item: RiskBarData = {
           label: meal,
           value: val,
@@ -226,7 +226,7 @@ export struct AnalysisView {
         let risk: RiskNutrientSummary = NutritionCalculator.aggregateRisks(w.weekLabel, recs);
         let val = this.selectedRiskType === 'purine' ? risk.purine : (this.selectedRiskType === 'sodium' ? risk.sodium : risk.cholesterol);
         let isWarn = val > cfg.threshold;
-        let hint = recs.length === 0 ? '该周暂无记录' : (isWarn ? `该周累计超标，需适度调整` : '摄入良好受控');
+        let hint = recs.length === 0 ? '该周暂无记录' : (isWarn ? `该周累计偏高，可适度注意` : '摄入良好受控');
         let item: RiskBarData = {
           label: w.weekLabel,
           value: val,
@@ -247,7 +247,7 @@ export struct AnalysisView {
       let risk: RiskNutrientSummary = NutritionCalculator.aggregateRisks(d.dayLabel, recs);
       let val = this.selectedRiskType === 'purine' ? risk.purine : (this.selectedRiskType === 'sodium' ? risk.sodium : risk.cholesterol);
       let isWarn = val > cfg.threshold;
-      let hint = recs.length === 0 ? '当日无记录' : (isWarn ? `超过建议安全上限(${cfg.threshold}${cfg.unit})` : '摄入正常达标');
+      let hint = recs.length === 0 ? '当日无记录' : (isWarn ? `高于每日推荐参考值(${cfg.threshold}${cfg.unit})` : '摄入平稳达标');
       let item: RiskBarData = {
         label: d.dayLabel,
         value: val,
@@ -634,7 +634,7 @@ export struct AnalysisView {
     .shadow({ radius: 8, color: 'rgba(0,0,0,0.03)', offsetY: 4 })
   }
 
-  // 4. 风险指标超标预警卡片
+  // 4. 重点营养素摄入卡片
   @Builder
   RiskChartCard() {
     Column() {
@@ -642,7 +642,7 @@ export struct AnalysisView {
       Row() {
         Row({ space: 8 }) {
           Image($r('app.media.ic_risk')).width(18).height(18)
-          Text('风险指标超标预警').fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
+          Text('重点营养素摄入参考').fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
         }
         
         Blank()
@@ -675,7 +675,7 @@ export struct AnalysisView {
         
         Blank()
         
-        Text(`建议上限 ≤ ${this.getCurrentRiskConfig().threshold}${this.getCurrentRiskConfig().unit}`)
+        Text(`参考推荐值 ≤ ${this.getCurrentRiskConfig().threshold}${this.getCurrentRiskConfig().unit}`)
           .fontSize(11)
           .fontColor('#999999')
       }
@@ -874,7 +874,7 @@ export struct AnalysisView {
     Column({ space: 12 }) {
       Row({ space: 8 }) {
         Text('💡').fontSize(18)
-        Text('周期健康评估与饮食指导')
+        Text('周期膳食评估与搭配建议')
           .fontSize(16)
           .fontWeight(FontWeight.Bold)
           .fontColor(AppTheme.PRIMARY_COLOR)
@@ -910,9 +910,9 @@ export struct AnalysisView {
         .alignItems(HorizontalAlign.Center)
 
         Column({ space: 4 }) {
-          Text('超标预警').fontSize(11).fontColor('#718096')
+          Text('偏高关注').fontSize(11).fontColor('#718096')
           Text(`${this.getWarningCount()} 次`).fontSize(14).fontWeight(FontWeight.Bold).fontColor('#2D3748')
-          Text(this.getWarningCount() > 0 ? `${this.getCurrentRiskConfig().name}超标` : '安全稳定')
+          Text(this.getWarningCount() > 0 ? `${this.getCurrentRiskConfig().name}偏高` : '摄入均衡')
             .fontSize(10)
             .fontColor(AppTheme.PRIMARY_COLOR)
             .backgroundColor('#DCFCE7')
@@ -932,6 +932,18 @@ export struct AnalysisView {
         .fontSize(12)
         .fontColor('#4A5568')
         .lineHeight(20)
+
+      Divider().color('#DCFCE7').strokeWidth(1).margin({ top: 4, bottom: 2 })
+
+      // 常驻医疗免责声明
+      Row({ space: 4 }) {
+        Text('⚠️ 免责声明：本报告所有统计分析与营养建议基于《中国居民膳食指南》等公开营养资料提供健康生活参考，不构成任何医疗诊断或治疗方案，慢病及特殊人群请遵医嘱。')
+          .fontSize(11)
+          .fontColor('#718096')
+          .lineHeight(16)
+      }
+      .width('100%')
+      .padding({ top: 4 })
     }
     .width('100%')
     .padding(18)
@@ -943,7 +955,7 @@ export struct AnalysisView {
 
   getDynamicSuggestion(): string {
     if (this.periodRecords.length === 0) {
-      return `当前${this.timeMode}维度内暂无饮食记录。请前往「记录」录入您的日常三餐，系统将为您生成详尽的三大营养素宏量供能比分析与痛风、高血压等风险预警。`;
+      return `当前${this.timeMode}维度内暂无饮食记录。请前往「记录」录入您的日常三餐，系统将为您生成详尽的三大营养素宏量供能比分析与重点营养素摄入参考。`;
     }
 
     let warnCount = this.getWarningCount();
@@ -951,19 +963,19 @@ export struct AnalysisView {
 
     if (this.selectedRiskType === 'purine') {
       if (warnCount > 0) {
-        return `监测到该周期内有 ${warnCount} 次嘌呤超出安全上限（300mg）。建议日常多饮温水（每日 2000ml 以上）促进尿酸排泄，避免内脏浓肉汤，增加新鲜叶菜与脱脂奶摄入。`;
+        return `监测到该周期内有 ${warnCount} 次嘌呤高于推荐参考值（300mg）。建议日常适度增加温水摄入，少选内脏浓肉汤，增加新鲜蔬菜与脱脂奶摄入。`;
       }
       return '当前周期嘌呤摄入量整体控制良好，处于安全平稳范围。建议继续保持合理荤素搭配，维持良好的水分补给。';
     } else if (this.selectedRiskType === 'sodium') {
       if (warnCount > 0) {
-        return `监测到有 ${warnCount} 次钠盐摄入超过建议上限（2000mg）。建议烹饪时适当减少生抽与酱料用量，少食腌制加工品，多选高钾新鲜蔬果。`;
+        return `监测到有 ${warnCount} 次钠盐摄入高于推荐参考值（2000mg）。建议烹饪时适当减少生抽与重口酱料，少食腌制加工品，多选高钾新鲜蔬果。`;
       }
-      return '钠摄入量保持良好，符合低盐膳食健康标准，有利于维持平稳血压。';
+      return '钠摄入量保持良好，符合低盐膳食健康标准，有利于维持日常身体平衡。';
     } else {
       if (warnCount > 0) {
-        return `监测到胆固醇偏高（超过 300mg 上限）。建议控制蛋黄、动物内脏及肥肉摄入量，增加富含膳食纤维的燕麦与豆制品。`;
+        return `监测到胆固醇摄入偏高（超过 300mg 参考值）。建议适度控制动物油脂与油炸食品，搭配富含膳食纤维的燕麦与新鲜豆制品。`;
       }
-      return '胆固醇与脂肪摄入良好，心血管负担较低，建议维持均衡的优质蛋白与蔬菜搭配。';
+      return '胆固醇与脂肪摄入良好，身体负担较低，建议维持均衡的优质蛋白与蔬菜搭配。';
     }
   }
 

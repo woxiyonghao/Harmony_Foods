@@ -127,6 +127,44 @@ struct FoodComparePage {
         }
         .width('100%')
         .layoutWeight(1)
+      } else {
+        Column({ space: 14 }) {
+          Image($r('app.media.ic_food'))
+            .width(64)
+            .height(64)
+            .opacity(0.35)
+            .margin({ top: 120 })
+
+          Text('暂无对比食物数据')
+            .fontSize(17)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#333333')
+
+          Text('请在「食物库」列表中挑选 2 款食物勾选「对比」后，点击「开始对比」即可生成营养素图表。')
+            .fontSize(13)
+            .fontColor('#888888')
+            .textAlign(TextAlign.Center)
+            .padding({ left: 36, right: 36 })
+            .lineHeight(20)
+
+          Button('返回食物库')
+            .fontSize(14)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(Color.White)
+            .backgroundColor(AppTheme.PRIMARY_COLOR)
+            .borderRadius(20)
+            .height(40)
+            .padding({ left: 28, right: 28 })
+            .margin({ top: 16 })
+            .onClick(() => {
+              try {
+                router.back();
+              } catch (e) {}
+            })
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Center)
       }
     }
     .width('100%')

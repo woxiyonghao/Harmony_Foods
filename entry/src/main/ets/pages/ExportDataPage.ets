@@ -12,7 +12,9 @@ struct ExportDataPage {
   @State favoriteCount: number = 0;
   @State customFoodCount: number = 0;
   @State lastBackupTime: string = '未备份';
+  @State exportFormat: string = 'JSON'; // 'JSON' | 'CSV'
   @State jsonSnippet: string = '正在抓取本地数据...';
+  @State csvSnippet: string = '正在生成 CSV 表格...';
   @State profile: UserProfile = {
     id: '10000',
     nickname: '健康探索者',
@@ -38,23 +40,30 @@ struct ExportDataPage {
     let favorites = await FoodDBHelper.getFavoriteFoods();
     let customs = await FoodDBHelper.getCustomFoods();
     let json = await FoodDBHelper.exportAllDataAsJson();
+    let csv = await FoodDBHelper.exportAllDataAsCsv();
 
     this.recordCount = records.length;
     this.favoriteCount = favorites.length;
     this.customFoodCount = customs.length;
     this.lastBackupTime = this.profile.lastBackupTime;
     this.jsonSnippet = json;
+    this.csvSnippet = csv;
   }
 
-  async handleCopy() {
+  async handleCopy(format: string) {
     try {
-      let pasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, this.jsonSnippet);
+      let content = format === 'CSV' ? this.csvSnippet : this.jsonSnippet;
+      let pasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, content);
       let systemPasteboard = pasteboard.getSystemPasteboard();
       await systemPasteboard.setData(pasteData);
-      promptAction.showToast({ message: 'JSON 备份数据已复制到剪贴板' });
+      let newTime = await FoodDBHelper.updateBackupTime();
+      this.lastBackupTime = newTime;
+      promptAction.showToast({
+        message: format === 'CSV' ? 'CSV 表格数据已复制到剪贴板，已更新备份时间' : 'JSON 备份数据已复制到剪贴板，已更新备份时间'
+      });
     } catch (e) {
       try {
-        promptAction.showToast({ message: '复制完成' });
+        promptAction.showToast({ message: '数据已复制' });
       } catch (err) {}
     }
   }
@@ -135,21 +144,55 @@ struct ExportDataPage {
           .borderRadius(16)
           .shadow({ radius: 8, color: 'rgba(0,0,0,0.03)', offsetY: 4 })
 
-          // 导出格式说明与操作
-          Column({ space: 12 }) {
-            Text('导出格式与内容')
-              .fontSize(16)
-              .fontWeight(FontWeight.Bold)
-              .fontColor('#333333')
-              .width('100%')
+          // 导出格式切换与说明
+          Column({ space: 14 }) {
+            Row() {
+              Text('导出格式与内容')
+                .fontSize(16)
+                .fontWeight(FontWeight.Bold)
+                .fontColor('#333333')
 
-            Text('格式：标准 JSON 格式字符流（包含全量用户资料、历史摄入条目明细、收藏夹与自定义库），完全在本地生成，零云端中转。')
+              Blank()
+
+              // 格式选择 Switcher
+              Row({ space: 4 }) {
+                Text('JSON 档案')
+                  .fontSize(12)
+                  .fontWeight(this.exportFormat === 'JSON' ? FontWeight.Bold : FontWeight.Normal)
+                  .fontColor(this.exportFormat === 'JSON' ? Color.White : '#666666')
+                  .backgroundColor(this.exportFormat === 'JSON' ? AppTheme.PRIMARY_COLOR : '#F0F0F0')
+                  .padding({ left: 10, right: 10, top: 4, bottom: 4 })
+                  .borderRadius(10)
+                  .onClick(() => {
+                    this.exportFormat = 'JSON';
+                  })
+
+                Text('CSV 表格')
+                  .fontSize(12)
+                  .fontWeight(this.exportFormat === 'CSV' ? FontWeight.Bold : FontWeight.Normal)
+                  .fontColor(this.exportFormat === 'CSV' ? Color.White : '#666666')
+                  .backgroundColor(this.exportFormat === 'CSV' ? AppTheme.PRIMARY_COLOR : '#F0F0F0')
+                  .padding({ left: 10, right: 10, top: 4, bottom: 4 })
+                  .borderRadius(10)
+                  .onClick(() => {
+                    this.exportFormat = 'CSV';
+                  })
+              }
+              .backgroundColor('#EFEFEF')
+              .padding(2)
+              .borderRadius(12)
+            }
+            .width('100%')
+
+            Text(this.exportFormat === 'JSON'
+              ? 'JSON 格式：包含完整用户资料、历史全量饮食条目明细、收藏夹与自定义库的结构化流数据，适合离线数据完整备份与多端迁移。'
+              : 'CSV 格式：逗号分隔纯文本表格格式，包含日期、餐段、食物名称、摄入克重、热量及三大营养素，可直接用 Excel 或 WPS 等表格软件打开。')
               .fontSize(12)
               .fontColor('#666666')
               .lineHeight(18)
 
             Row({ space: 12 }) {
-              Button('复制全量 JSON')
+              Button(this.exportFormat === 'JSON' ? '复制全量 JSON' : '复制 CSV 表格')
                 .layoutWeight(1)
                 .height(42)
                 .fontSize(14)
@@ -158,7 +201,7 @@ struct ExportDataPage {
                 .backgroundColor(AppTheme.PRIMARY_COLOR)
                 .borderRadius(21)
                 .onClick(() => {
-                  this.handleCopy();
+                  this.handleCopy(this.exportFormat);
                 })
 
               Button('更新快照')
@@ -182,7 +225,7 @@ struct ExportDataPage {
           .borderRadius(16)
           .shadow({ radius: 8, color: 'rgba(0,0,0,0.03)', offsetY: 4 })
 
-          // JSON 代码预览区域
+          // 代码预览区域 (支持 JSON 与 CSV 动态切换)
           Column({ space: 10 }) {
             Row() {
               Text('数据流预览')
@@ -190,7 +233,7 @@ struct ExportDataPage {
                 .fontWeight(FontWeight.Bold)
                 .fontColor('#333333')
               Blank()
-              Text('JSON')
+              Text(this.exportFormat)
                 .fontSize(12)
                 .fontColor('#888888')
                 .backgroundColor('#EEEEEE')
@@ -199,7 +242,7 @@ struct ExportDataPage {
             }.width('100%')
 
             Scroll() {
-              Text(this.jsonSnippet)
+              Text(this.exportFormat === 'JSON' ? this.jsonSnippet : this.csvSnippet)
                 .fontSize(11)
                 .fontColor('#333333')
                 .fontFamily('monospace')
