@@ -4,6 +4,7 @@ import { DateNavigator } from '../../common/components/DateNavigator'
 import { DateHelper } from '../../common/utils/DateHelper'
 import { FoodDBHelper } from '../../common/utils/FoodDBHelper'
 import { FoodItem, DietRecordItem, FavoriteFoodItem } from '../../common/models/FoodItem'
+import { NutritionCalculator } from '../../common/utils/NutritionCalculator'
 
 export interface MealSlot {
   title: string;
@@ -22,7 +23,7 @@ export struct SearchAddFoodDialog {
   @State weightInput: string = '100'
   @State allFoods: FoodItem[] = []
   
-  onConfirm: (meal: string, name: string, amount: string, energy: number) => void = () => {}
+  onConfirm: (meal: string, name: string, amount: string, energy: number, protein?: number, fat?: number, carbs?: number) => void = () => {}
 
   private meals: string[] = ['早餐', '午餐', '晚餐', '加餐']
   private quickWeights: number[] = [50, 100, 150, 200, 250]
@@ -182,7 +183,10 @@ export struct SearchAddFoodDialog {
               return;
             }
             let energy = this.calculateEnergy();
-            this.onConfirm(this.selectedMeal, this.selectedFood.name, `${w}g`, energy);
+            let prot = Math.round(((this.selectedFood.protein || 0) * w / 100) * 10) / 10;
+            let ft = Math.round(((this.selectedFood.fat || 0) * w / 100) * 10) / 10;
+            let cb = Math.round(((this.selectedFood.carbs || 0) * w / 100) * 10) / 10;
+            this.onConfirm(this.selectedMeal, this.selectedFood.name, `${w}g`, energy, prot, ft, cb);
             this.controller.close();
           })
           .backgroundColor(AppTheme.PRIMARY_COLOR)
@@ -534,8 +538,27 @@ export struct RecordView {
     ];
   }
 
-  async addRecord(mealType: string, foodName: string, amount: string, energy: number) {
+  async addRecord(mealType: string, foodName: string, amount: string, energy: number, protein?: number, fat?: number, carbs?: number) {
     let dateKey = DateHelper.formatDateKey(this.selectedDate);
+    let prot = protein;
+    let ft = fat;
+    let cb = carbs;
+    if (prot === undefined || ft === undefined || cb === undefined || (prot === 0 && ft === 0 && cb === 0)) {
+      let tempRec: DietRecordItem = {
+        id: '',
+        date: dateKey,
+        mealType: mealType,
+        foodName: foodName,
+        amount: amount,
+        energy: energy,
+        createdAt: 0
+      };
+      let calced = NutritionCalculator.calculateRecordNutrients(tempRec);
+      prot = calced.protein;
+      ft = calced.fat;
+      cb = calced.carbs;
+    }
+
     let record: DietRecordItem = {
       id: Date.now().toString(),
       date: dateKey,
@@ -543,6 +566,9 @@ export struct RecordView {
       foodName: foodName,
       amount: amount,
       energy: energy,
+      protein: prot,
+      fat: ft,
+      carbs: cb,
       createdAt: Date.now()
     };
     await FoodDBHelper.insertDietRecord(record);
@@ -583,8 +609,8 @@ export struct RecordView {
     this.searchAddController = new CustomDialogController({
       builder: SearchAddFoodDialog({
         selectedMeal: initialMeal,
-        onConfirm: (meal: string, name: string, amount: string, energy: number) => {
-          this.addRecord(meal, name, amount, energy);
+        onConfirm: (meal: string, name: string, amount: string, energy: number, protein?: number, fat?: number, carbs?: number) => {
+          this.addRecord(meal, name, amount, energy, protein, fat, carbs);
         }
       }),
       alignment: DialogAlignment.Center,

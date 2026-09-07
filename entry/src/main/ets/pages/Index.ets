@@ -28,7 +28,7 @@ struct Index {
   }
 
   build() {
-    Tabs({ barPosition: BarPosition.End }) {
+    Tabs({ barPosition: BarPosition.End, index: this.currentIndex }) {
       TabContent() {
         HomeView()
       }
@@ -45,7 +45,12 @@ struct Index {
       .tabBar(this.TabBuilder('记录', 2, $r('app.media.ic_record')))
 
       TabContent() {
-        AnalysisView()
+        AnalysisView({
+          activeTab: this.currentIndex,
+          onNavigateToRecord: () => {
+            this.currentIndex = 2;
+          }
+        })
       }
       .tabBar(this.TabBuilder('分析', 3, $r('app.media.ic_analysis')))
 

@@ -294,6 +294,35 @@ export class FoodDBHelper {
     return list;
   }
 
+  static async getAllDietRecords(): Promise<DietRecordItem[]> {
+    if (!rdbStore) return [];
+    let predicates = new relationalStore.RdbPredicates('diet_record');
+    predicates.orderByAsc('date');
+    predicates.orderByAsc('createdAt');
+    let list: DietRecordItem[] = [];
+    try {
+      let resultSet = await rdbStore.query(predicates, ['id', 'date', 'mealType', 'foodName', 'amount', 'energy', 'protein', 'fat', 'carbs', 'createdAt']);
+      while (resultSet.goToNextRow()) {
+        list.push({
+          id: resultSet.getString(resultSet.getColumnIndex('id')),
+          date: resultSet.getString(resultSet.getColumnIndex('date')),
+          mealType: resultSet.getString(resultSet.getColumnIndex('mealType')),
+          foodName: resultSet.getString(resultSet.getColumnIndex('foodName')),
+          amount: resultSet.getString(resultSet.getColumnIndex('amount')),
+          energy: resultSet.getLong(resultSet.getColumnIndex('energy')),
+          protein: resultSet.getDouble(resultSet.getColumnIndex('protein')),
+          fat: resultSet.getDouble(resultSet.getColumnIndex('fat')),
+          carbs: resultSet.getDouble(resultSet.getColumnIndex('carbs')),
+          createdAt: resultSet.getLong(resultSet.getColumnIndex('createdAt'))
+        });
+      }
+      resultSet.close();
+    } catch (err) {
+      console.error('FoodDBHelper', 'Query all diet records failed', err);
+    }
+    return list;
+  }
+
   static async getRecentDietFoods(limit: number = 8): Promise<DietRecordItem[]> {
     if (!rdbStore) return [];
     let predicates = new relationalStore.RdbPredicates('diet_record');

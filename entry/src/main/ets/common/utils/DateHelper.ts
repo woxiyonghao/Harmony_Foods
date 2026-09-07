@@ -44,4 +44,64 @@ export class DateHelper {
     newDate.setDate(newDate.getDate() + days);
     return newDate;
   }
+
+  static getWeekDates(refDate: Date = new Date()): WeekDayInfo[] {
+    const jsDay = refDate.getDay();
+    const monOffset = jsDay === 0 ? -6 : 1 - jsDay;
+    const monday = new Date(refDate.getFullYear(), refDate.getMonth(), refDate.getDate() + monOffset);
+    const dayLabels = ['一', '二', '三', '四', '五', '六', '日'];
+    const result: WeekDayInfo[] = [];
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+      result.push({
+        date: d,
+        dateKey: DateHelper.formatDateKey(d),
+        dayLabel: dayLabels[i]
+      });
+    }
+    return result;
+  }
+
+  static getMonthWeeks(refDate: Date = new Date()): MonthWeekInfo[] {
+    const year = refDate.getFullYear();
+    const month = refDate.getMonth();
+    const mStr = (month + 1).toString().padStart(2, '0');
+    const lastDay = new Date(year, month + 1, 0).getDate();
+
+    return [
+      {
+        weekLabel: '第1周',
+        startDateKey: `${year}-${mStr}-01`,
+        endDateKey: `${year}-${mStr}-07`
+      },
+      {
+        weekLabel: '第2周',
+        startDateKey: `${year}-${mStr}-08`,
+        endDateKey: `${year}-${mStr}-14`
+      },
+      {
+        weekLabel: '第3周',
+        startDateKey: `${year}-${mStr}-15`,
+        endDateKey: `${year}-${mStr}-21`
+      },
+      {
+        weekLabel: '第4周',
+        startDateKey: `${year}-${mStr}-22`,
+        endDateKey: `${year}-${mStr}-${lastDay.toString().padStart(2, '0')}`
+      }
+    ];
+  }
+}
+
+export interface WeekDayInfo {
+  date: Date;
+  dateKey: string;
+  dayLabel: string;
+}
+
+export interface MonthWeekInfo {
+  weekLabel: string;
+  startDateKey: string;
+  endDateKey: string;
 }
