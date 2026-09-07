@@ -1,23 +1,28 @@
+import router from '@ohos.router'
 import promptAction from '@ohos.promptAction'
 import { AppTheme } from '../../common/constants/AppTheme'
+import { FoodDBHelper } from '../../common/utils/FoodDBHelper'
 
-interface Category {
+export interface Category {
   name: string;
   icon?: Resource;
 }
 
-interface FoodTag {
+export interface FoodTag {
   label: string;
   color: string;
   bgColor: string;
 }
 
-interface FoodItem {
+export interface FoodItem {
   id: string;
   categoryId: number; // 0=全部, 1=蔬菜, 2=水果, 3=肉禽, 4=饮品, 5=中式
   name: string;
   energy: number; // kcal per 100g
   tags: FoodTag[];
+  protein?: number;
+  fat?: number;
+  carbs?: number;
 }
 
 @CustomDialog
@@ -49,7 +54,14 @@ export struct AddFoodDialog {
           
         Button('确定')
           .onClick(() => {
-            if (this.foodName.trim() === '') return;
+            if (this.foodName.trim() === '') {
+              promptAction.showToast({ message: '请输入食物名称' });
+              return;
+            }
+            if (this.energy.trim() === '') {
+              promptAction.showToast({ message: '请输入热量' });
+              return;
+            }
             this.confirm(this.foodName, parseInt(this.energy) || 0);
             this.controller.close();
           })
@@ -83,6 +95,7 @@ export struct FoodLibraryView {
     {
       id: '1', categoryId: 2,
       name: '苹果 (带皮)', energy: 53,
+      protein: 0.2, fat: 0.2, carbs: 13.8,
       tags: [
         { label: '低嘌呤', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' },
         { label: '低钠', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' }
@@ -91,6 +104,7 @@ export struct FoodLibraryView {
     {
       id: '2', categoryId: 3,
       name: '猪肉 (瘦)', energy: 143,
+      protein: 20.3, fat: 6.2, carbs: 1.5,
       tags: [
         { label: '中嘌呤 (150mg)', color: '#FF9800', bgColor: '#FFF3E0' },
         { label: '高蛋白', color: '#2196F3', bgColor: '#E3F2FD' }
@@ -99,6 +113,7 @@ export struct FoodLibraryView {
     {
       id: '3', categoryId: 3,
       name: '猪肝', energy: 130,
+      protein: 19.3, fat: 3.5, carbs: 5.0,
       tags: [
         { label: '高嘌呤 (275mg)', color: '#F44336', bgColor: '#FFEBEE' },
         { label: '高胆固醇', color: '#F44336', bgColor: '#FFEBEE' }
@@ -107,6 +122,7 @@ export struct FoodLibraryView {
     {
       id: '4', categoryId: 1,
       name: '菠菜 (水煮)', energy: 28,
+      protein: 2.9, fat: 0.4, carbs: 3.6,
       tags: [
         { label: '低热量', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' },
         { label: '草酸溶出', color: '#FF9800', bgColor: '#FFF3E0' }
@@ -115,12 +131,23 @@ export struct FoodLibraryView {
     {
       id: '5', categoryId: 4,
       name: '全脂牛奶', energy: 62,
+      protein: 3.3, fat: 3.6, carbs: 4.8,
       tags: [
         { label: '高钙', color: '#2196F3', bgColor: '#E3F2FD' },
         { label: '极低嘌呤', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' }
       ]
     }
   ];
+
+  async aboutToAppear() {
+    let context = getContext(this);
+    await FoodDBHelper.init(context);
+    let customFoods = await FoodDBHelper.getCustomFoods();
+    if (customFoods.length > 0) {
+      // 保持原有内置食物在后面，新添加的在前面
+      this.mockFoods = [...customFoods, ...this.mockFoods];
+    }
+  }
 
   dialogController: CustomDialogController = new CustomDialogController({
     builder: AddFoodDialog({
@@ -130,9 +157,11 @@ export struct FoodLibraryView {
           categoryId: this.selectedCategoryIndex === 0 ? 1 : this.selectedCategoryIndex,
           name: name,
           energy: energy,
+          protein: 0, fat: 0, carbs: 0,
           tags: [{ label: '自定义', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' }]
         };
         this.mockFoods.unshift(newFood);
+        FoodDBHelper.insertFood(newFood);
       }
     }),
     alignment: DialogAlignment.Center,
@@ -145,13 +174,6 @@ export struct FoodLibraryView {
       let matchSearch = (this.searchQuery === '') || food.name.includes(this.searchQuery);
       return matchCategory && matchSearch;
     });
-  }
-
-      .backgroundColor('#F7F8FA')
-    }
-    .width('100%')
-    .height('100%')
-    .alignItems(HorizontalAlign.Start)
   }
 
   build() {
@@ -172,7 +194,13 @@ export struct FoodLibraryView {
             .height(36)
             .onClick(() => {
               if (this.compareList.length === 2) {
-                promptAction.showToast({ message: '跳转到对比详情页: ' + this.compareList.map(i => i.name).join(' vs ') })
+                router.pushUrl({
+                  url: 'pages/FoodComparePage',
+                  params: {
+                    foodA: this.compareList[0],
+                    foodB: this.compareList[1]
+                  }
+                });
               } else {
                 promptAction.showToast({ message: '请选择两种食物进行对比' })
               }
@@ -233,6 +261,7 @@ export struct FoodLibraryView {
           ListItem() {
             this.FoodCard(food)
           }
+          .swipeAction({ end: this.DeleteButton(food) })
         }, (food: FoodItem) => food.id)
         
         // 底部自定义食物卡片入口
@@ -263,6 +292,42 @@ export struct FoodLibraryView {
     .width('100%')
     .height('100%')
     .alignItems(HorizontalAlign.Start)
+  }
+
+  deleteFood(food: FoodItem) {
+    let index = this.mockFoods.findIndex(f => f.id === food.id);
+    if (index >= 0) {
+      this.mockFoods.splice(index, 1);
+    }
+    let cmpIndex = this.compareList.findIndex(f => f.id === food.id);
+    if (cmpIndex >= 0) {
+      this.compareList.splice(cmpIndex, 1);
+    }
+    FoodDBHelper.deleteFood(food.id);
+  }
+
+  @Builder
+  DeleteButton(food: FoodItem) {
+    Button('删除')
+      .type(ButtonType.Normal)
+      .width(72)
+      .height('100%')
+      .backgroundColor('#FF4D4F')
+      .fontColor(Color.White)
+      .borderRadius({ topRight: 16, bottomRight: 16 })
+      .onClick(() => {
+        promptAction.showDialog({
+          title: `您确认删除 ${food.name}?`,
+          buttons: [
+            { text: '取消', color: '#333333' },
+            { text: '确认删除', color: '#FF0000' }
+          ]
+        }).then((data) => {
+          if (data.index === 1) {
+            this.deleteFood(food);
+          }
+        })
+      })
   }
 
   @Builder
