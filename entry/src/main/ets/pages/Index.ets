@@ -60,7 +60,7 @@ struct Index {
       .tabBar(this.TabBuilder('分析', 3, $r('app.media.ic_analysis')))
 
       TabContent() {
-        ProfileView()
+        ProfileView({ activeTab: this.currentIndex })
       }
       .tabBar(this.TabBuilder('我的', 4, $r('app.media.ic_profile')))
     }

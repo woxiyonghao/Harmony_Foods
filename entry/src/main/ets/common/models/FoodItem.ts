@@ -37,3 +37,16 @@ export interface FavoriteFoodItem {
   createdAt: number;
 }
 
+export interface UserProfile {
+  id: string;
+  nickname: string;
+  avatar: string;
+  height: number;
+  weight: number;
+  targetGoal: string;
+  targetEnergy: number;
+  diseaseTags: string;
+  scoreWeight: string;
+  lastBackupTime: string;
+}
+
