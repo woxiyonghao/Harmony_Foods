@@ -1,3 +1,4 @@
+import promptAction from '@ohos.promptAction'
 import { AppTheme } from '../../common/constants/AppTheme'
 
 interface Category {
@@ -67,6 +68,7 @@ export struct AddFoodDialog {
 export struct FoodLibraryView {
   @State selectedCategoryIndex: number = 0;
   @State searchQuery: string = '';
+  @State compareList: FoodItem[] = [];
 
   private categories: Category[] = [
     { name: '全部' },
@@ -145,7 +147,50 @@ export struct FoodLibraryView {
     });
   }
 
+      .backgroundColor('#F7F8FA')
+    }
+    .width('100%')
+    .height('100%')
+    .alignItems(HorizontalAlign.Start)
+  }
+
   build() {
+    Stack({ alignContent: Alignment.Bottom }) {
+      this.MainContent()
+
+      if (this.compareList.length > 0) {
+        Row() {
+          Column() {
+            Text(`已选 ${this.compareList.length} / 2 个食物`).fontSize(14).fontColor('#333333')
+          }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+
+          Button('开始对比')
+            .type(ButtonType.Capsule)
+            .backgroundColor(this.compareList.length === 2 ? AppTheme.PRIMARY_COLOR : '#EAEAEA')
+            .fontColor(this.compareList.length === 2 ? Color.White : '#999999')
+            .fontSize(14)
+            .height(36)
+            .onClick(() => {
+              if (this.compareList.length === 2) {
+                promptAction.showToast({ message: '跳转到对比详情页: ' + this.compareList.map(i => i.name).join(' vs ') })
+              } else {
+                promptAction.showToast({ message: '请选择两种食物进行对比' })
+              }
+            })
+        }
+        .width('90%')
+        .padding(16)
+        .backgroundColor(Color.White)
+        .borderRadius(24)
+        .shadow({ radius: 10, color: 'rgba(0,0,0,0.1)', offsetY: 4 })
+        .margin({ bottom: 20 })
+      }
+    }
+    .width('100%')
+    .height('100%')
+  }
+
+  @Builder MainContent() {
     Column() {
       // 1. 顶部搜索栏
       Row() {
@@ -268,12 +313,24 @@ export struct FoodLibraryView {
 
       // 右侧：对比按钮
       Column() {
-        Button('对比')
+        Button(this.compareList.some(item => item.id === food.id) ? '已选' : '对比')
           .type(ButtonType.Capsule)
           .fontSize(12)
-          .backgroundColor('#F0F0F0')
-          .fontColor('#333333')
+          .backgroundColor(this.compareList.some(item => item.id === food.id) ? AppTheme.PRIMARY_COLOR : '#F0F0F0')
+          .fontColor(this.compareList.some(item => item.id === food.id) ? Color.White : '#333333')
           .width(60).height(28)
+          .onClick(() => {
+            let index = this.compareList.findIndex(item => item.id === food.id);
+            if (index >= 0) {
+              this.compareList.splice(index, 1);
+            } else {
+              if (this.compareList.length >= 2) {
+                promptAction.showToast({ message: '最多只能对比两种食物' });
+                return;
+              }
+              this.compareList.push(food);
+            }
+          })
       }.justifyContent(FlexAlign.Center).height(60)
     }
     .width('100%')
