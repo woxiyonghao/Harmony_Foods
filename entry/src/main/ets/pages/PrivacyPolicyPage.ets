@@ -1,10 +1,23 @@
 import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';
+import pasteboard from '@ohos.pasteboard';
 import { AppTheme } from '../common/constants/AppTheme';
 
 @Entry
 @Component
 struct PrivacyPolicyPage {
+  // 复制文本到系统剪贴板
+  private async copyToClipboard(text: string, tip: string) {
+    try {
+      let pasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, text);
+      let systemPasteboard = pasteboard.getSystemPasteboard();
+      await systemPasteboard.setData(pasteData);
+      promptAction.showToast({ message: tip });
+    } catch (e) {
+      promptAction.showToast({ message: text });
+    }
+  }
+
   build() {
     Column() {
       // 1. 顶部导航栏
@@ -23,7 +36,7 @@ struct PrivacyPolicyPage {
           } catch (e) {}
         })
 
-        Text('隐私政策与声明')
+        Text('关于膳管家与隐私的声明')
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .fontColor('#333333')
@@ -40,100 +53,179 @@ struct PrivacyPolicyPage {
       // 2. 正文滚动区
       Scroll() {
         Column({ space: 16 }) {
-          // 核心承诺微章
-          Row({ space: 10 }) {
-            Text('🛡️').fontSize(24)
-            Column({ space: 2 }) {
-              Text('端侧本地优先，绝不上报云端')
-                .fontSize(15)
-                .fontWeight(FontWeight.Bold)
-                .fontColor(AppTheme.PRIMARY_COLOR)
-              Text('膳管家坚持尊重与捍卫您的数据自主权，所有健康饮食记录均严格存储在您的设备本地。')
-                .fontSize(12)
-                .fontColor('#555555')
-                .lineHeight(18)
-            }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+          // 标题与更新时间卡片
+          Column({ space: 6 }) {
+            Text('关于膳管家与隐私的声明')
+              .fontSize(20)
+              .fontWeight(FontWeight.Bold)
+              .fontColor('#1A1A1A')
+              .textAlign(TextAlign.Center)
+
+            Text('更新日期：2026.9.8')
+              .fontSize(13)
+              .fontColor('#888888')
+              .textAlign(TextAlign.Center)
+          }
+          .width('100%')
+          .padding({ top: 12, bottom: 4 })
+          .alignItems(HorizontalAlign.Center)
+
+          // 核心引言卡片
+          Column({ space: 12 }) {
+            Text('膳管家 是由 东莞市嘉致网络信息有限公司 （以下简称“我们”）为您提供的，用于查看各类食物营养及记录每日餐食应用的应用。本隐私声明由我们为处理您的个人信息而制定。')
+              .fontSize(14)
+              .fontColor('#333333')
+              .lineHeight(22)
+
+            Text('我们非常重视您的个人信息和隐私保护，将会按照法律要求和业界成熟的安全标准，为您的个人信息提供相应的安全保护措施。')
+              .fontSize(14)
+              .fontColor('#333333')
+              .lineHeight(22)
           }
           .width('100%')
           .padding(16)
-          .backgroundColor('#E8F5E9')
+          .backgroundColor('#F0F7F2')
           .borderRadius(14)
 
-          // 条款内容卡片
-          Column({ space: 18 }) {
-            // 第一条
-            Column({ space: 6 }) {
-              Text('一、概述与原则')
-                .fontSize(15)
+          // 条款详细卡片
+          Column({ space: 20 }) {
+            // 第1节
+            Column({ space: 8 }) {
+              Text('1. 我们如何收集和使用您的个人信息')
+                .fontSize(16)
                 .fontWeight(FontWeight.Bold)
-                .fontColor('#333333')
-              Text('感谢您信任并使用“膳管家”（以下简称“本应用”）。我们深知个人隐私与健康数据对您的重要性，因此本应用在系统设计上严格遵循“最小必要”、“离线优先”和“透明可知”的最高隐私保护标准。')
-                .fontSize(13)
-                .fontColor('#666666')
-                .lineHeight(20)
-            }.width('100%').alignItems(HorizontalAlign.Start)
+                .fontColor('#222222')
+
+              Text('我们仅在有合法性基础的情形下才会使用您的个人信息。根据适用的法律，我们可能会基于您的同意、为履行/订立您与我们的合同所必需、履行法定义务所必需等合法性基础，使用您的个人信息。')
+                .fontSize(14)
+                .fontColor('#444444')
+                .lineHeight(22)
+
+              Text('1.1 我们为您提供了基本功能服务和全量功能服务，您可以前往任意应用页面进行选择，不同设备或版本其路径可能存在差异，具体以您当前使用的设备为准。在基本功能服务下不收集个人信息，仅提供全量基本功能，不提供及隐私及获取设备权限等其他附加功能，这可能会影响您的使用体验。')
+                .fontSize(14)
+                .fontColor('#444444')
+                .lineHeight(22)
+            }
+            .width('100%')
+            .alignItems(HorizontalAlign.Start)
 
             Divider().color('#F2F2F2').strokeWidth(1)
 
-            // 第二条
-            Column({ space: 6 }) {
-              Text('二、我们如何存储与处理数据')
-                .fontSize(15)
+            // 第2节
+            Column({ space: 8 }) {
+              Text('2. 管理您的个人信息')
+                .fontSize(16)
                 .fontWeight(FontWeight.Bold)
-                .fontColor('#333333')
-              Text('1. 存储位置：您录入的所有每日饮食餐段明细、自建食材、收藏食物、身体基础数据（身高/体重）以及慢病关注标签，均直接持久化于您终端设备的本地 SQLite 数据库文件中。\n2. 零云端上传：本应用无需联网即可完整运行全部核心功能，我们没有部署任何远程服务器用以收集、转存或分析您的个人健康信息。\n3. 账号体系：您的本地用户 ID 由设备端自增分配，账号与密码凭证均加密存储于端侧。')
-                .fontSize(13)
-                .fontColor('#666666')
-                .lineHeight(20)
-            }.width('100%').alignItems(HorizontalAlign.Start)
+                .fontColor('#222222')
+
+              Text('如您对您的数据主体权利有进一步要求或存在任何疑问、意见或建议，可通过本声明中“如何联系我们”章节中所述方式与我们取得联系，并行使您的相关权利。')
+                .fontSize(14)
+                .fontColor('#444444')
+                .lineHeight(22)
+            }
+            .width('100%')
+            .alignItems(HorizontalAlign.Start)
 
             Divider().color('#F2F2F2').strokeWidth(1)
 
-            // 第三条
-            Column({ space: 6 }) {
-              Text('三、您的完整数据控制权')
-                .fontSize(15)
+            // 第3节
+            Column({ space: 8 }) {
+              Text('3. 信息存储地点及期限')
+                .fontSize(16)
                 .fontWeight(FontWeight.Bold)
-                .fontColor('#333333')
-              Text('1. 自由导出：您可随时在「数据安全与管理 - 本地数据导出」中，将您的全部历史数据打包为标准 JSON 格式进行归档或转移。\n2. 随时清空：您可一键清空所有历史饮食摄入记录，且该操作不可撤销。\n3. 彻底注销：若您选择「注销用户」，系统将从本地数据库中彻底抹除您的账号、档案及全部饮食条目，实现物理级别的痕迹清除。')
-                .fontSize(13)
-                .fontColor('#666666')
-                .lineHeight(20)
-            }.width('100%').alignItems(HorizontalAlign.Start)
+                .fontColor('#222222')
+
+              Text('3.1 我们承诺，除法律法规另有规定外，我们对您的信息的保存期限应当为实现处理目的所必要的最短时间。')
+                .fontSize(14)
+                .fontColor('#444444')
+                .lineHeight(22)
+
+              Text('3.2 上述信息将会传输并保存至本地应用，不保存到任何地区的服务器。')
+                .fontSize(14)
+                .fontColor('#444444')
+                .lineHeight(22)
+            }
+            .width('100%')
+            .alignItems(HorizontalAlign.Start)
 
             Divider().color('#F2F2F2').strokeWidth(1)
 
-            // 第四条
-            Column({ space: 6 }) {
-              Text('四、权限声明与第三方接入')
-                .fontSize(15)
+            // 第4节
+            Column({ space: 8 }) {
+              Text('4. 如何联系我们')
+                .fontSize(16)
                 .fontWeight(FontWeight.Bold)
-                .fontColor('#333333')
-              Text('1. 权限最小化：本应用仅在您执行数据复制或本地备份时调用系统剪贴板等必要能力，不索取任何多余权限。\n2. 无第三方追踪：本应用未嵌入任何第三方商业广告 SDK 或用户行为追踪分析插件。')
-                .fontSize(13)
-                .fontColor('#666666')
-                .lineHeight(20)
-            }.width('100%').alignItems(HorizontalAlign.Start)
+                .fontColor('#222222')
+
+              Text('您可通过以下方式联系我们，并行使您的相关权利，我们会尽快回复。')
+                .fontSize(14)
+                .fontColor('#444444')
+                .lineHeight(22)
+
+              Row({ space: 6 }) {
+                Text('邮箱：')
+                  .fontSize(14)
+                  .fontColor('#444444')
+                Text('1529742177@qq.com')
+                  .fontSize(14)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(AppTheme.PRIMARY_COLOR)
+                Text('（点击复制）')
+                  .fontSize(12)
+                  .fontColor('#888888')
+              }
+              .padding({ top: 4, bottom: 4 })
+              .onClick(() => {
+                this.copyToClipboard('1529742177@qq.com', '邮箱已复制到剪贴板');
+              })
+
+              Text('如果您对我们的回复不满意, 特别是当个人信息处理行为损害了您的合法权益时您还可以通过向有管辖权的人民法院提起诉讼、向行业自律协会或政府相关管理机构投诉等外部途径进行解决。 您也可以向我们了解可能适用的相关投诉途径的信息。')
+                .fontSize(14)
+                .fontColor('#444444')
+                .lineHeight(22)
+            }
+            .width('100%')
+            .alignItems(HorizontalAlign.Start)
 
             Divider().color('#F2F2F2').strokeWidth(1)
 
-            // 第五条
-            Column({ space: 6 }) {
-              Text('五、医疗免责声明')
-                .fontSize(15)
-                .fontWeight(FontWeight.Bold)
-                .fontColor('#333333')
-              Text('本应用提供的营养学评估、健康综合评分、三色慢病警戒线及调理建议，仅供日常饮食生活习惯参考，不可替代执业医师、临床营养师的正式诊断或治疗建议。痛风、严重高血压及肾病患者在制定饮食计划时请务必遵循专业医嘱。')
+            // 生效日期
+            Row() {
+              Blank()
+              Text('生效日期：2026.9.7')
                 .fontSize(13)
                 .fontColor('#888888')
-                .lineHeight(20)
-            }.width('100%').alignItems(HorizontalAlign.Start)
+            }
+            .width('100%')
           }
           .width('100%')
           .padding(20)
           .backgroundColor(Color.White)
           .borderRadius(16)
           .shadow({ radius: 8, color: 'rgba(0,0,0,0.03)', offsetY: 4 })
+
+          // 官方线上协议链接与复制
+          Row({ space: 8 }) {
+            Text('🌐').fontSize(16)
+            Text('官方华为云隐私政策在线链接')
+              .fontSize(12)
+              .fontColor('#666666')
+              .layoutWeight(1)
+            Text('复制链接')
+              .fontSize(12)
+              .fontColor(AppTheme.PRIMARY_COLOR)
+              .fontWeight(FontWeight.Medium)
+          }
+          .width('100%')
+          .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+          .backgroundColor('#F5F7FA')
+          .borderRadius(10)
+          .onClick(() => {
+            this.copyToClipboard(
+              'https://agreement-drcn.hispace.dbankcloud.cn/index.html?lang=zh&agreementId=2034249778887405504',
+              '隐私政策链接已复制到剪贴板'
+            );
+          })
 
           // 确认已知按钮
           Button('我已阅读并理解隐私政策')

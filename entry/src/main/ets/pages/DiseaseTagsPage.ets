@@ -97,15 +97,7 @@ struct DiseaseTagsPage {
           .fontColor('#333333')
           .layoutWeight(1)
           .textAlign(TextAlign.Center)
-
-        Text('保存')
-          .fontSize(15)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(AppTheme.PRIMARY_COLOR)
-          .padding({ left: 12, right: 14, top: 8, bottom: 8 })
-          .onClick(() => {
-            this.handleSave();
-          })
+          .margin({ right: 44 })
       }
       .width('100%')
       .height(56)

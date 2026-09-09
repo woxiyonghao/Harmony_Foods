@@ -33,7 +33,10 @@ struct EditProfilePage {
     let context = getContext(this);
     await FoodDBHelper.init(context);
     this.profile = await FoodDBHelper.getUserProfile();
-    this.nickname = this.profile.nickname;
+    this.nickname = this.profile.nickname || '';
+    if (this.nickname.length > 6) {
+      this.nickname = this.nickname.slice(0, 6);
+    }
     this.selectedAvatar = this.profile.avatar;
   }
 
@@ -42,6 +45,13 @@ struct EditProfilePage {
     if (cleanNick === '') {
       try {
         promptAction.showToast({ message: '昵称不能为空' });
+      } catch (e) {}
+      return;
+    }
+
+    if (cleanNick.length > 6) {
+      try {
+        promptAction.showToast({ message: '昵称不能超过6个字' });
       } catch (e) {}
       return;
     }
@@ -165,24 +175,24 @@ struct EditProfilePage {
                 .fontWeight(FontWeight.Bold)
                 .fontColor('#333333')
               Blank()
-              Text(`${this.nickname.length}/12`)
+              Text(`${this.nickname.length}/6`)
                 .fontSize(12)
                 .fontColor('#999999')
             }
             .width('100%')
 
-            TextInput({ text: this.nickname, placeholder: '请输入您的昵称 (最多12字)' })
+            TextInput({ text: this.nickname, placeholder: '请输入您的昵称 (最多6字)' })
               .height(48)
               .fontSize(15)
-              .maxLength(12)
+              .maxLength(6)
               .backgroundColor('#F7F8FA')
               .borderRadius(12)
               .padding({ left: 14, right: 14 })
               .onChange((val: string) => {
-                this.nickname = val;
+                this.nickname = val.length > 6 ? val.slice(0, 6) : val;
               })
 
-            Text('建议使用简短且具有辨识度的专属健康代号')
+            Text('建议使用简短且具有辨识度的专属健康代号 (最多6字)')
               .fontSize(12)
               .fontColor('#999999')
           }

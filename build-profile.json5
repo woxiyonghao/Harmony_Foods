@@ -5,13 +5,13 @@
         "name": "default",
         "type": "HarmonyOS",
         "material": {
-          "storeFile": "/Users/lusesi/Desktop/bbsfoods/cers/bbsfoods.p12",
-          "storePassword": "00000019DB6B504E5B15583C478FC21308563990E02AECDAF13B44E646ED23AC098F175E75220CEBB1",
+          "storeFile": "/Users/mk10/Desktop/foods/Harmony_Foods/cers/bbsfoods.p12",
+          "storePassword": "0000001942AC0A7270257152406E8B1CCECF5E2D21946C323B5BFD9C834C51F17D3EA8F29E9D4B42A6",
           "keyAlias": "bbsfoods",
-          "keyPassword": "00000019695B8277E3E0A4B9EE17FBD1ACFD36CD50951B5673FE251205F926B893307F0E05087026E9",
+          "keyPassword": "000000193335436797B78072D5310772DD7D793E205C4CD8A20BB2DF1FDEEF5C9BC68429E2DC39DBD9",
           "signAlg": "SHA256withECDSA",
-          "profile": "/Users/lusesi/Desktop/bbsfoods/cers/bbsboods_porfile_relaseRelease.p7b",
-          "certpath": "/Users/lusesi/Desktop/bbsfoods/cers/com.winheo.bbsfoods.cer"
+          "profile": "/Users/mk10/Desktop/foods/Harmony_Foods/cers/bbsfoods_profile_releaseRelease.p7b",
+          "certpath": "/Users/mk10/Desktop/foods/Harmony_Foods/cers/bbsfoods_cer.cer"
         }
       }
     ],

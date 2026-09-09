@@ -27,6 +27,13 @@ struct LoginPage {
       return;
     }
 
+    if (cleanName.length > 6) {
+      try {
+        promptAction.showToast({ message: '名字不能超过6个字' });
+      } catch (e) {}
+      return;
+    }
+
     if (cleanPass === '') {
       try {
         promptAction.showToast({ message: '请输入密码' });
@@ -89,22 +96,29 @@ struct LoginPage {
 
           // 登录表单卡片
           Column({ space: 18 }) {
-            // 名字输入项 (只允许输入名字，不允许输入 ID)
+            // 名字输入项 (只允许输入名字，限制最多6个字)
             Column({ space: 6 }) {
-              Text('名字')
-                .fontSize(14)
-                .fontWeight(FontWeight.Medium)
-                .fontColor('#444444')
-                .width('100%')
+              Row() {
+                Text('名字')
+                  .fontSize(14)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor('#444444')
+                Blank()
+                Text(`${this.nameInput.length}/6`)
+                  .fontSize(12)
+                  .fontColor('#999999')
+              }
+              .width('100%')
 
-              TextInput({ text: this.nameInput, placeholder: '请输入名字' })
+              TextInput({ text: this.nameInput, placeholder: '请输入名字 (最多6字)' })
                 .height(48)
                 .fontSize(15)
+                .maxLength(6)
                 .backgroundColor('#F7F8FA')
                 .borderRadius(12)
                 .padding({ left: 14, right: 14 })
                 .onChange((val: string) => {
-                  this.nameInput = val;
+                  this.nameInput = val.length > 6 ? val.slice(0, 6) : val;
                 })
             }
             .width('100%')

@@ -200,10 +200,10 @@ struct AboutPage {
 
           // 底部版权标识
           Column({ space: 4 }) {
-            Text('膳管家 研发团队 版权所有')
+            Text('东莞市嘉致网络信息有限公司 版权所有')
               .fontSize(12)
               .fontColor('#AAAAAA')
-            Text('Copyright © 2026 膳管家团队. All Rights Reserved.')
+            Text('Copyright © 2026 东莞市嘉致网络信息有限公司. All Rights Reserved.')
               .fontSize(10)
               .fontColor('#BBBBBB')
           }
