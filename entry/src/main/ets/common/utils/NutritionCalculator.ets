@@ -1,5 +1,11 @@
-import { DietRecordItem, FoodItem } from '../models/FoodItem';
+import { DietRecordItem, FoodItem, UserProfile } from '../models/FoodItem';
 import { DEFAULT_FOODS } from './FoodDBHelper';
+
+export interface TargetMacroGoals {
+  carbs: number;    // g
+  protein: number;  // g
+  fat: number;      // g
+}
 
 export interface MacroNutrientSummary {
   label: string;
@@ -250,9 +256,51 @@ export class NutritionCalculator {
   }
 
   /**
-   * 计算健康评分 (0 - 100)
+   * 根据目标能量与健康目标动态推荐三大宏量营养素克数
    */
-  static calculateHealthScore(records: DietRecordItem[], label: string): ScoreSummary {
+  static calculateTargetMacros(targetEnergy: number, targetGoal: string = '维持健康体重'): TargetMacroGoals {
+    let energy = targetEnergy > 0 ? targetEnergy : 2100;
+    let carbsRatio = 0.55;  // 55%
+    let proteinRatio = 0.18; // 18%
+    let fatRatio = 0.27;    // 27%
+
+    if (targetGoal.includes('增肌')) {
+      carbsRatio = 0.50;
+      proteinRatio = 0.25;
+      fatRatio = 0.25;
+    } else if (targetGoal.includes('减重')) {
+      carbsRatio = 0.45;
+      proteinRatio = 0.25;
+      fatRatio = 0.30;
+    } else if (targetGoal.includes('尿酸') || targetGoal.includes('痛风')) {
+      carbsRatio = 0.60;
+      proteinRatio = 0.15;
+      fatRatio = 0.25;
+    } else if (targetGoal.includes('低脂') || targetGoal.includes('胆固醇')) {
+      carbsRatio = 0.60;
+      proteinRatio = 0.20;
+      fatRatio = 0.20;
+    } else if (targetGoal.includes('血压') || targetGoal.includes('控盐')) {
+      carbsRatio = 0.55;
+      proteinRatio = 0.20;
+      fatRatio = 0.25;
+    }
+
+    let carbsGrams = Math.round((energy * carbsRatio) / 4);
+    let proteinGrams = Math.round((energy * proteinRatio) / 4);
+    let fatGrams = Math.round((energy * fatRatio) / 9);
+
+    return {
+      carbs: carbsGrams,
+      protein: proteinGrams,
+      fat: fatGrams
+    };
+  }
+
+  /**
+   * 计算健康评分 (0 - 100)，支持联动用户个性化疾病标签与自定义评分维度权重
+   */
+  static calculateHealthScore(records: DietRecordItem[], label: string, profile?: UserProfile): ScoreSummary {
     if (records.length === 0) {
       let emptyScore: ScoreSummary = {
         label: label,
@@ -267,29 +315,55 @@ export class NutritionCalculator {
     let risk = NutritionCalculator.aggregateRisks(label, records);
 
     let score = 90; // 基础达标分
+    let scoreWeight = profile ? (profile.scoreWeight || '均衡健康模式') : '均衡健康模式';
+    let diseaseTags = profile ? (profile.diseaseTags || '') : '';
 
-    // 宏量供能比评估 (黄金区间: 碳水 50-60%, 蛋白 15-25%, 脂肪 20-30%)
-    if (macro.fatPercent > 35) score -= 8;
-    if (macro.fatPercent > 45) score -= 7;
-    if (macro.proteinPercent < 12) score -= 6;
+    // 权重模式系数
+    let isRiskFocused = scoreWeight.includes('调高风险') || scoreWeight.includes('风险指标');
+    let isMacroFocused = scoreWeight.includes('宏量') || scoreWeight.includes('营养优先');
+
+    // 疾病标签警戒阈值适配
+    let purineThreshold = 300;
+    let sodiumThreshold = 2000;
+    let cholesterolThreshold = 300;
+
+    if (diseaseTags.includes('尿酸') || diseaseTags.includes('痛风')) {
+      purineThreshold = 200;
+    }
+    if (diseaseTags.includes('高血压') || diseaseTags.includes('控盐')) {
+      sodiumThreshold = 1500;
+    }
+    if (diseaseTags.includes('高血脂') || diseaseTags.includes('脂肪肝')) {
+      cholesterolThreshold = 200;
+    }
+
+    // 宏量供能比评估
+    let fatPenalty = isMacroFocused ? 12 : 8;
+    let proteinPenalty = isMacroFocused ? 10 : 6;
+
+    if (macro.fatPercent > 35) score -= fatPenalty;
+    if (macro.fatPercent > 45) score -= (fatPenalty - 2);
+    if (macro.proteinPercent < 12) score -= proteinPenalty;
     if (macro.proteinPercent >= 18 && macro.proteinPercent <= 25) score += 4;
 
-    // 风险指标超标评估 (嘌呤 300mg, 钠 2000mg, 胆固醇 300mg)
+    // 风险指标超标评估
+    let riskPenalty = isRiskFocused ? 18 : 12;
     let warnings: string[] = [];
-    if (risk.purine > 300) {
-      score -= 12;
-      warnings.push('嘌呤偏高');
+
+    if (risk.purine > purineThreshold) {
+      score -= riskPenalty;
+      warnings.push(diseaseTags.includes('尿酸') ? '嘌呤超过个性化警戒线' : '嘌呤偏高');
     }
-    if (risk.sodium > 2000) {
-      score -= 12;
-      warnings.push('钠盐超标');
+    if (risk.sodium > sodiumThreshold) {
+      score -= riskPenalty;
+      warnings.push(diseaseTags.includes('血压') ? '钠盐超过控盐警戒线' : '钠盐超标');
     }
-    if (risk.cholesterol > 300) {
-      score -= 10;
-      warnings.push('胆固醇偏高');
+    if (risk.cholesterol > cholesterolThreshold) {
+      score -= Math.round(riskPenalty * 0.85);
+      warnings.push(diseaseTags.includes('血脂') ? '胆固醇超标' : '胆固醇偏高');
     }
 
-    score = Math.max(60, Math.min(98, score));
+    score = Math.max(50, Math.min(98, score));
 
     // 生成评价文案
     let evalText = '营养摄入均衡，搭配合理';

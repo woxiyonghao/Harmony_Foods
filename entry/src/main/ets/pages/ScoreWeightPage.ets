@@ -7,18 +7,18 @@ import { FoodDBHelper } from '../common/utils/FoodDBHelper';
 @Entry
 @Component
 struct ScoreWeightPage {
-  @State selectedMode: string = '已调高风险指标';
+  @State selectedMode: string = '均衡健康模式';
   @State profile: UserProfile = {
-    id: '10000',
+    id: '',
     nickname: '健康探索者',
     avatar: '🍎',
     height: 175,
     weight: 70,
-    targetGoal: '减重 5kg',
+    targetGoal: '维持健康体重',
     targetEnergy: 2100,
-    diseaseTags: '高尿酸 / 轻度脂肪肝',
-    scoreWeight: '已调高风险指标',
-    lastBackupTime: '昨天'
+    diseaseTags: '无特殊关注',
+    scoreWeight: '均衡健康模式',
+    lastBackupTime: '未备份'
   };
 
   private modes: string[] = [
@@ -31,12 +31,31 @@ struct ScoreWeightPage {
     let context = getContext(this);
     await FoodDBHelper.init(context);
     this.profile = await FoodDBHelper.getUserProfile();
-    this.selectedMode = this.profile.scoreWeight;
+    this.selectedMode = this.profile.scoreWeight || '均衡健康模式';
+  }
+
+  async saveDirectly(): Promise<boolean> {
+    let updatedProfile: UserProfile = {
+      id: this.profile.id,
+      nickname: this.profile.nickname,
+      avatar: this.profile.avatar,
+      height: this.profile.height,
+      weight: this.profile.weight,
+      targetGoal: this.profile.targetGoal,
+      targetEnergy: this.profile.targetEnergy,
+      diseaseTags: this.profile.diseaseTags,
+      scoreWeight: this.selectedMode,
+      lastBackupTime: this.profile.lastBackupTime
+    };
+    return await FoodDBHelper.saveUserProfile(updatedProfile);
   }
 
   async handleSave() {
-    this.profile.scoreWeight = this.selectedMode;
-    await FoodDBHelper.saveUserProfile(this.profile);
+    let saved = await this.saveDirectly();
+    if (!saved) {
+      promptAction.showToast({ message: '保存失败，请稍后重试' });
+      return;
+    }
 
     try {
       promptAction.showToast({ message: '评分维度权重已更新' });
@@ -45,6 +64,10 @@ struct ScoreWeightPage {
     try {
       router.back();
     } catch (e) {}
+  }
+
+  onBackPress(): boolean {
+    return false;
   }
 
   build() {

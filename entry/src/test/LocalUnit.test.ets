@@ -1,4 +1,6 @@
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from '@ohos/hypium';
+import { NutritionCalculator } from '../main/ets/common/utils/NutritionCalculator';
+import { DietRecordItem, UserProfile, cloneUserProfile } from '../main/ets/common/models/FoodItem';
 
 export default function localUnitTest() {
   describe('localUnitTest', () => {
@@ -28,6 +30,43 @@ export default function localUnitTest() {
       // Defines a variety of assertion methods, which are used to declare expected boolean conditions.
       expect(a).assertContain(b);
       expect(a).assertEqual(a);
+    });
+
+    it('profileCloneIsIndependent', 0, () => {
+      let original: UserProfile = {
+        id: '10000', nickname: '测试用户', avatar: '🍎', height: 175, weight: 70,
+        targetGoal: '维持健康体重', targetEnergy: 2100, diseaseTags: '',
+        scoreWeight: '均衡健康模式', lastBackupTime: '未备份'
+      };
+      let cloned = cloneUserProfile(original);
+      cloned.targetEnergy = 1600;
+      expect(original.targetEnergy).assertEqual(2100);
+      expect(cloned.targetEnergy).assertEqual(1600);
+    });
+
+    it('healthGoalChangesMacroTargets', 0, () => {
+      let maintain = NutritionCalculator.calculateTargetMacros(2000, '维持健康体重');
+      let muscle = NutritionCalculator.calculateTargetMacros(2000, '增肌塑形');
+      expect(maintain.protein).assertEqual(90);
+      expect(muscle.protein).assertEqual(125);
+      expect(muscle.carbs).assertEqual(250);
+    });
+
+    it('riskWeightChangesHealthScore', 0, () => {
+      let record: DietRecordItem = {
+        id: 'risk-test', date: '2026-09-11', mealType: '午餐', foodName: '猪肝',
+        amount: '200g', energy: 260, protein: 38.6, fat: 7, carbs: 10, createdAt: 1
+      };
+      let balanced: UserProfile = {
+        id: '10000', nickname: '测试用户', avatar: '🍎', height: 175, weight: 70,
+        targetGoal: '维持健康体重', targetEnergy: 2100, diseaseTags: '高尿酸 / 轻度脂肪肝',
+        scoreWeight: '均衡健康模式', lastBackupTime: '未备份'
+      };
+      let riskFocused = cloneUserProfile(balanced);
+      riskFocused.scoreWeight = '已调高风险指标';
+      let balancedScore = NutritionCalculator.calculateHealthScore([record], '今日', balanced);
+      let riskScore = NutritionCalculator.calculateHealthScore([record], '今日', riskFocused);
+      expect(riskScore.score < balancedScore.score).assertTrue();
     });
   });
 }

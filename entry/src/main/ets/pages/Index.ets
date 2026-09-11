@@ -5,6 +5,7 @@ import { RecordView } from '../view/record/RecordView'
 import { AnalysisView } from '../view/analysis/AnalysisView'
 import { ProfileView } from '../view/profile/ProfileView'
 import { AppTheme } from '../common/constants/AppTheme'
+import { FoodDBHelper } from '../common/utils/FoodDBHelper'
 
 @Entry
 @Component
@@ -12,13 +13,32 @@ struct Index {
   @State currentIndex: number = 0;
   @State refreshTrigger: number = 0;
 
-  aboutToAppear() {
+  async aboutToAppear() {
+    AppStorage.setOrCreate('profileVersion', 0);
+    AppStorage.setOrCreate('foodLibraryVersion', 0);
     this.checkRouterParams();
+    await this.checkAuth();
   }
 
-  onPageShow() {
+  async onPageShow() {
     this.refreshTrigger++;
     this.checkRouterParams();
+    let nextVersion = (AppStorage.get<number>('profileVersion') || 0) + 1;
+    AppStorage.set<number>('profileVersion', nextVersion);
+    let nextFoodVersion = (AppStorage.get<number>('foodLibraryVersion') || 0) + 1;
+    AppStorage.set<number>('foodLibraryVersion', nextFoodVersion);
+    await this.checkAuth();
+  }
+
+  async checkAuth() {
+    let context = getContext(this);
+    await FoodDBHelper.init(context);
+    let uid = await FoodDBHelper.getCurrentUserId();
+    if (!uid || uid.trim() === '') {
+      try {
+        router.replaceUrl({ url: 'pages/LoginPage' });
+      } catch (e) {}
+    }
   }
 
   checkRouterParams() {
@@ -51,6 +71,7 @@ struct Index {
       TabContent() {
         HomeView({
           activeTab: this.currentIndex,
+          refreshTrigger: this.refreshTrigger,
           onNavigateToRecord: () => {
             this.currentIndex = 2;
           }
@@ -59,12 +80,18 @@ struct Index {
       .tabBar(this.TabBuilder('首页', 0, $r('app.media.ic_tab_home_normal'), $r('app.media.ic_tab_home_active')))
 
       TabContent() {
-        FoodLibraryView({ activeTab: this.currentIndex })
+        FoodLibraryView({
+          activeTab: this.currentIndex,
+          refreshTrigger: this.refreshTrigger
+        })
       }
       .tabBar(this.TabBuilder('食物库', 1, $r('app.media.ic_tab_food_normal'), $r('app.media.ic_tab_food_active')))
 
       TabContent() {
-        RecordView({ activeTab: this.currentIndex })
+        RecordView({
+          activeTab: this.currentIndex,
+          refreshTrigger: this.refreshTrigger
+        })
       }
       .tabBar(this.TabBuilder('记录', 2, $r('app.media.ic_tab_record_normal'), $r('app.media.ic_tab_record_active')))
 

@@ -60,7 +60,7 @@ struct LoginPage {
       try {
         router.replaceUrl({
           url: 'pages/Index',
-          params: { targetIndex: 4 }
+          params: { targetIndex: 0 }
         });
       } catch (e) {}
     } else {
@@ -114,8 +114,12 @@ struct LoginPage {
                 .height(48)
                 .fontSize(15)
                 .maxLength(6)
-                .backgroundColor('#F7F8FA')
+                .fontColor('#111827')
+                .placeholderColor('#9CA3AF')
+                .backgroundColor('#F9FAFB')
                 .borderRadius(12)
+                .border({ width: 1, color: '#E5E7EB' })
+                .caretColor(AppTheme.PRIMARY_COLOR)
                 .padding({ left: 14, right: 14 })
                 .onChange((val: string) => {
                   this.nameInput = val.length > 6 ? val.slice(0, 6) : val;
@@ -139,9 +143,11 @@ struct LoginPage {
                   .type(this.isPasswordVisible ? InputType.Normal : InputType.Password)
                   .height(48)
                   .fontSize(15)
+                  .fontColor('#111827')
+                  .placeholderColor('#9CA3AF')
+                  .caretColor(AppTheme.PRIMARY_COLOR)
                   .layoutWeight(1)
-                  .backgroundColor('#F7F8FA')
-                  .borderRadius(12)
+                  .backgroundColor('transparent')
                   .padding({ left: 14, right: 14 })
                   .onChange((val: string) => {
                     this.passwordInput = val;
@@ -149,14 +155,16 @@ struct LoginPage {
 
                 Text(this.isPasswordVisible ? '🙈' : '👁️')
                   .fontSize(18)
+                  .fontColor('#666666')
                   .padding({ left: 10, right: 12, top: 12, bottom: 12 })
                   .onClick(() => {
                     this.isPasswordVisible = !this.isPasswordVisible;
                   })
               }
               .width('100%')
-              .backgroundColor('#F7F8FA')
+              .backgroundColor('#F9FAFB')
               .borderRadius(12)
+              .border({ width: 1, color: '#E5E7EB' })
             }
             .width('100%')
 
@@ -200,25 +208,6 @@ struct LoginPage {
               .shadow({ radius: 8, color: 'rgba(46, 139, 87, 0.3)', offsetY: 4 })
               .onClick(() => {
                 this.handleLogin();
-              })
-
-            // 游客免登录体验
-            Button('暂不登录，以游客身份体验')
-              .width('100%')
-              .height(44)
-              .fontSize(14)
-              .fontColor('#666666')
-              .backgroundColor('#F0F2F5')
-              .borderRadius(22)
-              .onClick(async () => {
-                try {
-                  await FoodDBHelper.setCurrentUserId('10000');
-                  promptAction.showToast({ message: '已进入离线体验模式' });
-                  router.replaceUrl({
-                    url: 'pages/Index',
-                    params: { targetIndex: 0 }
-                  });
-                } catch (e) {}
               })
           }
           .width('100%')

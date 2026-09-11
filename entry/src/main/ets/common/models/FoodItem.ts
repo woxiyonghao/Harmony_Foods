@@ -50,6 +50,21 @@ export interface UserProfile {
   lastBackupTime: string;
 }
 
+export function cloneUserProfile(p: UserProfile): UserProfile {
+  return {
+    id: p.id,
+    nickname: p.nickname,
+    avatar: p.avatar,
+    height: p.height,
+    weight: p.weight,
+    targetGoal: p.targetGoal,
+    targetEnergy: p.targetEnergy,
+    diseaseTags: p.diseaseTags,
+    scoreWeight: p.scoreWeight,
+    lastBackupTime: p.lastBackupTime
+  };
+}
+
 export interface UserAccount {
   userId: number;
   account: string;

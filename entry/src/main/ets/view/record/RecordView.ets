@@ -3,7 +3,7 @@ import { AppTheme } from '../../common/constants/AppTheme'
 import { DateNavigator } from '../../common/components/DateNavigator'
 import { DateHelper } from '../../common/utils/DateHelper'
 import { FoodDBHelper } from '../../common/utils/FoodDBHelper'
-import { FoodItem, DietRecordItem, FavoriteFoodItem } from '../../common/models/FoodItem'
+import { FoodItem, DietRecordItem, FavoriteFoodItem, UserProfile, cloneUserProfile } from '../../common/models/FoodItem'
 import { NutritionCalculator } from '../../common/utils/NutritionCalculator'
 
 export interface MealSlot {
@@ -74,7 +74,10 @@ export struct SearchAddFoodDialog {
         .searchButton('搜索')
         .width('100%')
         .height(38)
-        .backgroundColor('#F7F8FA')
+        .backgroundColor('#F9FAFB')
+        .fontColor('#111827')
+        .placeholderColor('#9CA3AF')
+        .border({ width: 1, color: '#E5E7EB', radius: 8 })
         .onChange((val: string) => {
           this.searchQuery = val;
         })
@@ -125,6 +128,12 @@ export struct SearchAddFoodDialog {
               .height(32)
               .fontSize(14)
               .textAlign(TextAlign.Center)
+              .fontColor('#111827')
+              .placeholderColor('#9CA3AF')
+              .backgroundColor('#F9FAFB')
+              .borderRadius(8)
+              .border({ width: 1, color: '#E5E7EB' })
+              .caretColor(AppTheme.PRIMARY_COLOR)
               .onChange((val: string) => {
                 this.weightInput = val;
               })
@@ -424,20 +433,38 @@ export struct QuickEntryDialog {
       }.width('100%').justifyContent(FlexAlign.SpaceBetween)
 
       TextInput({ placeholder: '食物名称 (如: 煎饼果子、牛肉面)' })
+        .fontColor('#111827')
+        .placeholderColor('#9CA3AF')
         .onChange((val: string) => { this.foodName = val; })
         .height(44)
-        .backgroundColor('#F7F8FA')
+        .backgroundColor('#F9FAFB')
+        .borderRadius(12)
+        .border({ width: 1, color: '#E5E7EB' })
+        .caretColor(AppTheme.PRIMARY_COLOR)
+        .padding({ left: 14, right: 14 })
 
       TextInput({ placeholder: '份量 (如: 1个、1碗、150g)' })
+        .fontColor('#111827')
+        .placeholderColor('#9CA3AF')
         .onChange((val: string) => { this.amount = val; })
         .height(44)
-        .backgroundColor('#F7F8FA')
+        .backgroundColor('#F9FAFB')
+        .borderRadius(12)
+        .border({ width: 1, color: '#E5E7EB' })
+        .caretColor(AppTheme.PRIMARY_COLOR)
+        .padding({ left: 14, right: 14 })
 
       TextInput({ placeholder: '估算热量 (千卡，如: 320)' })
         .type(InputType.Number)
+        .fontColor('#111827')
+        .placeholderColor('#9CA3AF')
         .onChange((val: string) => { this.energy = val; })
         .height(44)
-        .backgroundColor('#F7F8FA')
+        .backgroundColor('#F9FAFB')
+        .borderRadius(12)
+        .border({ width: 1, color: '#E5E7EB' })
+        .caretColor(AppTheme.PRIMARY_COLOR)
+        .padding({ left: 14, right: 14 })
 
       Row({ space: 12 }) {
         Button('取消')
@@ -476,6 +503,20 @@ export struct QuickEntryDialog {
 @Component
 export struct RecordView {
   @Prop @Watch('onActiveTabChange') activeTab: number = 0;
+  @Prop @Watch('onRefreshTriggerChange') refreshTrigger: number = 0;
+  @StorageLink('profileVersion') @Watch('onProfileVersionChange') profileVersion: number = 0;
+  @State userProfile: UserProfile = {
+    id: '',
+    nickname: '健康探索者',
+    avatar: '🍎',
+    height: 175,
+    weight: 70,
+    targetGoal: '维持健康体重',
+    targetEnergy: 2100,
+    diseaseTags: '无特殊关注',
+    scoreWeight: '均衡健康模式',
+    lastBackupTime: '未备份'
+  };
   @State selectedDate: Date = new Date();
   @State dateText: string = '';
   @State totalDailyEnergy: number = 0;
@@ -511,6 +552,8 @@ export struct RecordView {
   favoriteController: CustomDialogController | null = null;
   quickEntryController: CustomDialogController | null = null;
 
+  private isLoadingRecords: boolean = false;
+
   async aboutToAppear() {
     let context = getContext(this);
     await FoodDBHelper.init(context);
@@ -523,11 +566,31 @@ export struct RecordView {
     }
   }
 
+  onRefreshTriggerChange() {
+    this.loadRecordsForCurrentDate();
+  }
+
+  onProfileVersionChange() {
+    this.loadRecordsForCurrentDate();
+  }
+
+  loadProfileSync() {
+    let mem = AppStorage.get<UserProfile>('userProfile');
+    if (mem) {
+      this.userProfile = cloneUserProfile(mem);
+    }
+  }
+
   async loadRecordsForCurrentDate() {
-    this.dateText = DateHelper.formatDisplayDate(this.selectedDate);
-    let dateKey = DateHelper.formatDateKey(this.selectedDate);
-    let allDayRecords = await FoodDBHelper.getDietRecordsByDate(dateKey);
-    this.favoriteNames = await FoodDBHelper.getFavoriteNames();
+    this.loadProfileSync();
+    if (this.isLoadingRecords) return;
+    this.isLoadingRecords = true;
+    try {
+      this.userProfile = await FoodDBHelper.getUserProfile();
+      this.dateText = DateHelper.formatDisplayDate(this.selectedDate);
+      let dateKey = DateHelper.formatDateKey(this.selectedDate);
+      let allDayRecords = await FoodDBHelper.getDietRecordsByDate(dateKey);
+      this.favoriteNames = await FoodDBHelper.getFavoriteNames();
     
     let total = 0;
     for (let r of allDayRecords) {
@@ -560,6 +623,9 @@ export struct RecordView {
         foods: allDayRecords.filter((r: DietRecordItem) => r.mealType === '加餐')
       }
     ];
+    } finally {
+      this.isLoadingRecords = false;
+    }
   }
 
   async addRecord(mealType: string, foodName: string, amount: string, energy: number, protein?: number, fat?: number, carbs?: number) {
@@ -698,7 +764,7 @@ export struct RecordView {
       // 1. 顶部日期导航与今日汇总
       DateNavigator({
         dateText: this.dateText,
-        subText: `总摄入 ${this.totalDailyEnergy} / 2100 千卡`,
+        subText: `总摄入 ${this.totalDailyEnergy} / ${this.userProfile ? this.userProfile.targetEnergy : 2100} 千卡`,
         onPrevClick: () => {
           this.selectedDate = DateHelper.addDays(this.selectedDate, -1);
           this.loadRecordsForCurrentDate();

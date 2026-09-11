@@ -23,11 +23,25 @@ export struct AddFoodDialog {
       Text('自定义添加食物').fontSize(20).fontWeight(FontWeight.Bold).fontColor('#333333')
       
       TextInput({ placeholder: '请输入食物名称 (如: 燕麦片)' })
+        .fontColor('#111827')
+        .placeholderColor('#9CA3AF')
+        .backgroundColor('#F9FAFB')
+        .borderRadius(12)
+        .border({ width: 1, color: '#E5E7EB' })
+        .caretColor(AppTheme.PRIMARY_COLOR)
+        .padding({ left: 14, right: 14 })
         .onChange((value: string) => { this.foodName = value; })
         .height(48)
         
       TextInput({ placeholder: '热量 (千卡/100g)' })
         .type(InputType.Number)
+        .fontColor('#111827')
+        .placeholderColor('#9CA3AF')
+        .backgroundColor('#F9FAFB')
+        .borderRadius(12)
+        .border({ width: 1, color: '#E5E7EB' })
+        .caretColor(AppTheme.PRIMARY_COLOR)
+        .padding({ left: 14, right: 14 })
         .onChange((value: string) => { this.energy = value; })
         .height(48)
         
@@ -65,10 +79,13 @@ export struct AddFoodDialog {
 @Component
 export struct FoodLibraryView {
   @Prop @Watch('onActiveTabChange') activeTab: number = 0;
+  @Prop @Watch('onRefreshTriggerChange') refreshTrigger: number = 0;
+  @StorageLink('foodLibraryVersion') @Watch('onFoodLibraryVersionChange') libraryVersion: number = 0;
   @State selectedCategoryIndex: number = 0;
   @State searchQuery: string = '';
   @State compareList: FoodItem[] = [];
   @State favoriteNames: string[] = [];
+  @State mockFoods: FoodItem[] = [];
 
   private categories: Category[] = [
     { name: '全部' },
@@ -79,67 +96,30 @@ export struct FoodLibraryView {
     { name: '中式菜肴' }
   ];
 
-  @State mockFoods: FoodItem[] = [
-    {
-      id: '1', categoryId: 2,
-      name: '苹果 (带皮)', energy: 53,
-      protein: 0.2, fat: 0.2, carbs: 13.8,
-      tags: [
-        { label: '低嘌呤', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' },
-        { label: '低钠', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' }
-      ]
-    },
-    {
-      id: '2', categoryId: 3,
-      name: '猪肉 (瘦)', energy: 143,
-      protein: 20.3, fat: 6.2, carbs: 1.5,
-      tags: [
-        { label: '中嘌呤 (150mg)', color: '#FF9800', bgColor: '#FFF3E0' },
-        { label: '高蛋白', color: '#2196F3', bgColor: '#E3F2FD' }
-      ]
-    },
-    {
-      id: '3', categoryId: 3,
-      name: '猪肝', energy: 130,
-      protein: 19.3, fat: 3.5, carbs: 5.0,
-      tags: [
-        { label: '高嘌呤 (275mg)', color: '#F44336', bgColor: '#FFEBEE' },
-        { label: '高胆固醇', color: '#F44336', bgColor: '#FFEBEE' }
-      ]
-    },
-    {
-      id: '4', categoryId: 1,
-      name: '菠菜 (水煮)', energy: 28,
-      protein: 2.9, fat: 0.4, carbs: 3.6,
-      tags: [
-        { label: '低热量', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' },
-        { label: '草酸溶出', color: '#FF9800', bgColor: '#FFF3E0' }
-      ]
-    },
-    {
-      id: '5', categoryId: 4,
-      name: '全脂牛奶', energy: 62,
-      protein: 3.3, fat: 3.6, carbs: 4.8,
-      tags: [
-        { label: '高钙', color: '#2196F3', bgColor: '#E3F2FD' },
-        { label: '极低嘌呤', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' }
-      ]
-    }
-  ];
-
   async aboutToAppear() {
     let context = getContext(this);
     await FoodDBHelper.init(context);
-    let customFoods = await FoodDBHelper.getCustomFoods();
-    if (customFoods.length > 0) {
-      // 保持原有内置食物在后面，新添加的在前面
-      this.mockFoods = [...customFoods, ...this.mockFoods];
-    }
+    await this.loadFoods();
+    await this.refreshFavorites();
+  }
+
+  async loadFoods() {
+    let foods = await FoodDBHelper.getLibraryFoods();
+    this.mockFoods = [...foods];
+  }
+
+  async onFoodLibraryVersionChange() {
+    await this.loadFoods();
+  }
+
+  async onRefreshTriggerChange() {
+    await this.loadFoods();
     await this.refreshFavorites();
   }
 
   async onActiveTabChange() {
     if (this.activeTab === 1) {
+      await this.loadFoods();
       await this.refreshFavorites();
     }
   }
@@ -150,7 +130,7 @@ export struct FoodLibraryView {
 
   dialogController: CustomDialogController = new CustomDialogController({
     builder: AddFoodDialog({
-      confirm: (name: string, energy: number) => {
+      confirm: async (name: string, energy: number) => {
         let newFood: FoodItem = {
           id: Date.now().toString(),
           categoryId: this.selectedCategoryIndex === 0 ? 1 : this.selectedCategoryIndex,
@@ -159,8 +139,8 @@ export struct FoodLibraryView {
           protein: 0, fat: 0, carbs: 0,
           tags: [{ label: '自定义', color: AppTheme.PRIMARY_COLOR, bgColor: '#E8F5E9' }]
         };
-        this.mockFoods.unshift(newFood);
-        FoodDBHelper.insertFood(newFood);
+        await FoodDBHelper.insertFood(newFood);
+        await this.loadFoods();
       }
     }),
     alignment: DialogAlignment.Center,
@@ -226,7 +206,9 @@ export struct FoodLibraryView {
           .width('100%')
           .height(40)
           .backgroundColor(Color.White)
-          .placeholderColor(Color.Grey)
+          .fontColor('#111827')
+          .placeholderColor('#9CA3AF')
+          .border({ width: 1, color: '#E5E7EB', radius: 10 })
           .placeholderFont({ size: 14 })
           .textFont({ size: 14 })
           .onChange((value: string) => {
@@ -293,7 +275,7 @@ export struct FoodLibraryView {
     .alignItems(HorizontalAlign.Start)
   }
 
-  deleteFood(food: FoodItem) {
+  async deleteFood(food: FoodItem) {
     let index = this.mockFoods.findIndex(f => f.id === food.id);
     if (index >= 0) {
       this.mockFoods.splice(index, 1);
@@ -302,7 +284,7 @@ export struct FoodLibraryView {
     if (cmpIndex >= 0) {
       this.compareList.splice(cmpIndex, 1);
     }
-    FoodDBHelper.deleteFood(food.id);
+    await FoodDBHelper.deleteFood(food.id);
   }
 
   @Builder

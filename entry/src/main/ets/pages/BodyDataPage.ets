@@ -10,16 +10,16 @@ struct BodyDataPage {
   @State heightInput: string = '175';
   @State weightInput: string = '70';
   @State profile: UserProfile = {
-    id: '10000',
+    id: '',
     nickname: '健康探索者',
     avatar: '🍎',
     height: 175,
     weight: 70,
-    targetGoal: '减重 5kg',
+    targetGoal: '维持健康体重',
     targetEnergy: 2100,
-    diseaseTags: '高尿酸 / 轻度脂肪肝',
-    scoreWeight: '已调高风险指标',
-    lastBackupTime: '昨天'
+    diseaseTags: '无特殊关注',
+    scoreWeight: '均衡健康模式',
+    lastBackupTime: '未备份'
   };
 
   async aboutToAppear() {
@@ -63,6 +63,36 @@ struct BodyDataPage {
     return `${minW} ~ ${maxW} kg`;
   }
 
+  async saveDirectly(): Promise<boolean> {
+    let h = parseFloat(this.heightInput) || 0;
+    let w = parseFloat(this.weightInput) || 0;
+    if (h < 50 || h > 260 || w < 20 || w > 300) {
+      return false;
+    }
+
+    // 若未特别设定个性化热量或为默认值，根据身高体重动态推算基准能量
+    let targetEnergy = this.profile.targetEnergy || 2100;
+    let bmr = Math.round(10 * w + 6.25 * h - 140);
+    let estTdee = Math.max(1200, Math.min(3500, Math.round((bmr * 1.35) / 50) * 50));
+    if (this.profile.targetGoal === '维持健康体重' || targetEnergy === 2100) {
+      targetEnergy = estTdee;
+    }
+
+    let updatedProfile: UserProfile = {
+      id: this.profile.id,
+      nickname: this.profile.nickname,
+      avatar: this.profile.avatar,
+      height: h,
+      weight: w,
+      targetGoal: this.profile.targetGoal || '维持健康体重',
+      targetEnergy: targetEnergy,
+      diseaseTags: this.profile.diseaseTags || '无特殊关注',
+      scoreWeight: this.profile.scoreWeight || '均衡健康模式',
+      lastBackupTime: this.profile.lastBackupTime || '未备份'
+    };
+    return await FoodDBHelper.saveUserProfile(updatedProfile);
+  }
+
   async handleSave() {
     let h = parseFloat(this.heightInput) || 0;
     let w = parseFloat(this.weightInput) || 0;
@@ -79,9 +109,11 @@ struct BodyDataPage {
       return;
     }
 
-    this.profile.height = h;
-    this.profile.weight = w;
-    await FoodDBHelper.saveUserProfile(this.profile);
+    let saved = await this.saveDirectly();
+    if (!saved) {
+      promptAction.showToast({ message: '保存失败，请稍后重试' });
+      return;
+    }
 
     try {
       promptAction.showToast({ message: '身体数据已保存' });
@@ -90,6 +122,10 @@ struct BodyDataPage {
     try {
       router.back();
     } catch (e) {}
+  }
+
+  onBackPress(): boolean {
+    return false;
   }
 
   build() {
@@ -209,8 +245,12 @@ struct BodyDataPage {
                 .type(InputType.Number)
                 .height(48)
                 .fontSize(16)
-                .backgroundColor('#F7F8FA')
+                .fontColor('#111827')
+                .placeholderColor('#9CA3AF')
+                .backgroundColor('#F9FAFB')
                 .borderRadius(12)
+                .border({ width: 1, color: '#E5E7EB' })
+                .caretColor(AppTheme.PRIMARY_COLOR)
                 .padding({ left: 14, right: 14 })
                 .onChange((val: string) => {
                   this.heightInput = val;
@@ -236,8 +276,12 @@ struct BodyDataPage {
                 .type(InputType.Number)
                 .height(48)
                 .fontSize(16)
-                .backgroundColor('#F7F8FA')
+                .fontColor('#111827')
+                .placeholderColor('#9CA3AF')
+                .backgroundColor('#F9FAFB')
                 .borderRadius(12)
+                .border({ width: 1, color: '#E5E7EB' })
+                .caretColor(AppTheme.PRIMARY_COLOR)
                 .padding({ left: 14, right: 14 })
                 .onChange((val: string) => {
                   this.weightInput = val;

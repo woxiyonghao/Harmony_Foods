@@ -5,13 +5,13 @@
         "name": "default",
         "type": "HarmonyOS",
         "material": {
-          "storeFile": "/Users/mk10/Desktop/foods/Harmony_Foods/cers/bbsfoods.p12",
-          "storePassword": "0000001942AC0A7270257152406E8B1CCECF5E2D21946C323B5BFD9C834C51F17D3EA8F29E9D4B42A6",
-          "keyAlias": "bbsfoods",
-          "keyPassword": "000000193335436797B78072D5310772DD7D793E205C4CD8A20BB2DF1FDEEF5C9BC68429E2DC39DBD9",
+          "certpath": "/Users/mk10/.ohos/config/default_Harmony_Foods_jfFS3EBbNDUBzSFzhSUyalvLRXUVpQeg07RIS8zy0bw=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B69515A39A8E6CD54B2C22641D43351C5A41FBC79EA4743CC39F5E76C2B666255D61274B8E1B8E1",
+          "profile": "/Users/mk10/.ohos/config/default_Harmony_Foods_jfFS3EBbNDUBzSFzhSUyalvLRXUVpQeg07RIS8zy0bw=.p7b",
           "signAlg": "SHA256withECDSA",
-          "profile": "/Users/mk10/Desktop/foods/Harmony_Foods/cers/bbsfoods_profile_releaseRelease.p7b",
-          "certpath": "/Users/mk10/Desktop/foods/Harmony_Foods/cers/bbsfoods_cer.cer"
+          "storeFile": "/Users/mk10/.ohos/config/default_Harmony_Foods_jfFS3EBbNDUBzSFzhSUyalvLRXUVpQeg07RIS8zy0bw=.p12",
+          "storePassword": "0000001B3498D7D31A5C07FA3C2C919D37BE7A6C60D49258F19013FAC036DBE98D801C640B60655204761F"
         }
       }
     ],

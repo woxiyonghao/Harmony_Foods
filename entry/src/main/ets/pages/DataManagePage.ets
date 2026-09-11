@@ -77,7 +77,7 @@ struct DataManagePage {
                   secondaryButton: {
                     value: '确认恢复',
                     action: async () => {
-                      await FoodDBHelper.seedInitialFavoritesIfEmpty();
+                      await FoodDBHelper.restorePresetFoods();
                       try {
                         promptAction.showToast({ message: '已成功恢复预置数据' });
                       } catch (e) {}
@@ -186,7 +186,7 @@ struct DataManagePage {
                         promptAction.showToast({ message: '系统数据已全部重置为初始状态' });
                       } catch (e) {}
                       try {
-                        router.back();
+                        router.replaceUrl({ url: 'pages/LoginPage' });
                       } catch (e) {}
                     }
                   }

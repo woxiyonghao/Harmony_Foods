@@ -7,70 +7,105 @@ import { FoodDBHelper } from '../common/utils/FoodDBHelper';
 @Entry
 @Component
 struct DiseaseTagsPage {
-  @State selectedTags: string[] = ['高尿酸 / 痛风', '轻度脂肪肝'];
+  @State selectedTags: string[] = ['无特殊关注'];
   @State profile: UserProfile = {
-    id: '10000',
+    id: '',
     nickname: '健康探索者',
     avatar: '🍎',
     height: 175,
     weight: 70,
-    targetGoal: '减重 5kg',
+    targetGoal: '维持健康体重',
     targetEnergy: 2100,
-    diseaseTags: '高尿酸 / 轻度脂肪肝',
-    scoreWeight: '已调高风险指标',
-    lastBackupTime: '昨天'
+    diseaseTags: '无特殊关注',
+    scoreWeight: '均衡健康模式',
+    lastBackupTime: '未备份'
   };
 
   private options: string[] = [
-    '高尿酸 / 痛风',
-    '高血压',
-    '高血脂',
-    '轻度脂肪肝',
-    '糖尿病',
-    '乳糖不耐受',
-    '无特殊疾病'
+    '高尿酸/痛风关注',
+    '高血压/控盐关注',
+    '高血脂/脂肪肝关注',
+    '控糖/糖尿病关注',
+    '低乳糖关注',
+    '无特殊关注'
   ];
 
   async aboutToAppear() {
     let context = getContext(this);
     await FoodDBHelper.init(context);
     this.profile = await FoodDBHelper.getUserProfile();
-    if (this.profile.diseaseTags) {
-      this.selectedTags = this.profile.diseaseTags.split(' / ').filter((t: string) => t.trim() !== '');
+    if (this.profile.diseaseTags && this.profile.diseaseTags.trim() !== '') {
+      let raw = this.profile.diseaseTags;
+      let parts = raw.split(/[\/、,]+/).map((t: string) => t.trim()).filter((t: string) => t.length > 0);
+      let matched: string[] = [];
+      for (let p of parts) {
+        for (let opt of this.options) {
+          if (opt.includes(p) || p.includes(opt.replace('关注', '')) || opt === p) {
+            if (!matched.includes(opt)) matched.push(opt);
+          }
+        }
+      }
+      this.selectedTags = matched.length > 0 ? matched : ['无特殊关注'];
+    } else {
+      this.selectedTags = ['无特殊关注'];
     }
   }
 
   toggleTag(tag: string) {
-    if (tag === '无特殊疾病') {
-      this.selectedTags = ['无特殊疾病'];
+    if (tag === '无特殊关注') {
+      this.selectedTags = ['无特殊关注'];
       return;
     }
 
-    let noSpecIdx = this.selectedTags.indexOf('无特殊疾病');
-    if (noSpecIdx !== -1) {
-      this.selectedTags.splice(noSpecIdx, 1);
+    let list = this.selectedTags.filter((t: string) => t !== '无特殊关注');
+    let idx = list.indexOf(tag);
+    if (idx >= 0) {
+      list.splice(idx, 1);
+    } else {
+      list.push(tag);
     }
 
-    let idx = this.selectedTags.indexOf(tag);
-    if (idx !== -1) {
-      this.selectedTags.splice(idx, 1);
-    } else {
-      this.selectedTags.push(tag);
+    if (list.length === 0) {
+      list = ['无特殊关注'];
     }
+    this.selectedTags = [...list];
+  }
+
+  async saveDirectly(): Promise<boolean> {
+    let res = this.selectedTags.length > 0 ? this.selectedTags.join('、') : '无特殊关注';
+    let updatedProfile: UserProfile = {
+      id: this.profile.id,
+      nickname: this.profile.nickname,
+      avatar: this.profile.avatar,
+      height: this.profile.height,
+      weight: this.profile.weight,
+      targetGoal: this.profile.targetGoal,
+      targetEnergy: this.profile.targetEnergy,
+      diseaseTags: res,
+      scoreWeight: this.profile.scoreWeight,
+      lastBackupTime: this.profile.lastBackupTime
+    };
+    return await FoodDBHelper.saveUserProfile(updatedProfile);
   }
 
   async handleSave() {
-    let res = this.selectedTags.length > 0 ? this.selectedTags.join(' / ') : '无特殊疾病';
-    this.profile.diseaseTags = res;
-    await FoodDBHelper.saveUserProfile(this.profile);
+    let saved = await this.saveDirectly();
+    if (!saved) {
+      promptAction.showToast({ message: '保存失败，请稍后重试' });
+      return;
+    }
 
     try {
-      promptAction.showToast({ message: '疾病与关注标签已保存' });
+      promptAction.showToast({ message: '膳食关注标签已保存' });
     } catch (e) {}
 
     try {
       router.back();
     } catch (e) {}
+  }
+
+  onBackPress(): boolean {
+    return false;
   }
 
   build() {

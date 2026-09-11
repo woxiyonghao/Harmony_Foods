@@ -2,24 +2,37 @@ import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';
 import { AppTheme } from '../../common/constants/AppTheme';
 import { FoodDBHelper } from '../../common/utils/FoodDBHelper';
-import { UserProfile } from '../../common/models/FoodItem';
+import { UserProfile, cloneUserProfile } from '../../common/models/FoodItem';
 
 @Component
 export struct ProfileView {
   @Prop @Watch('onActiveTabChange') activeTab: number = 0;
   @Prop @Watch('onRefresh') refreshTrigger: number = 0;
+  @StorageLink('profileVersion') @Watch('onProfileVersionChange') profileVersion: number = 0;
   @State profile: UserProfile = {
-    id: '10000',
+    id: '',
     nickname: '健康探索者',
     avatar: '🍎',
     height: 175,
     weight: 70,
-    targetGoal: '减重 5kg',
+    targetGoal: '维持健康体重',
     targetEnergy: 2100,
-    diseaseTags: '高尿酸 / 轻度脂肪肝',
-    scoreWeight: '已调高风险指标',
-    lastBackupTime: '昨天'
+    diseaseTags: '无特殊关注',
+    scoreWeight: '均衡健康模式',
+    lastBackupTime: '未备份'
   };
+
+  @State nickname: string = '健康探索者';
+  @State avatar: string = '🍎';
+  @State userId: string = '';
+  @State userHeight: number = 175;
+  @State userWeight: number = 70;
+  @State targetGoal: string = '维持健康体重';
+  @State diseaseTags: string = '无特殊关注';
+  @State scoreWeight: string = '均衡健康模式';
+  @State lastBackupTime: string = '未备份';
+
+  private isLoadingProfile: boolean = false;
 
   async aboutToAppear() {
     let context = getContext(this);
@@ -37,8 +50,45 @@ export struct ProfileView {
     this.loadProfile();
   }
 
+  onProfileVersionChange() {
+    this.loadProfile();
+  }
+
+  loadProfileSync() {
+    let mem = AppStorage.get<UserProfile>('userProfile');
+    if (mem) {
+      this.profile = cloneUserProfile(mem);
+      this.nickname = mem.nickname || '健康探索者';
+      this.avatar = mem.avatar || '🍎';
+      this.userId = mem.id || '';
+      this.userHeight = mem.height || 175;
+      this.userWeight = mem.weight || 70;
+      this.targetGoal = mem.targetGoal || '维持健康体重';
+      this.diseaseTags = mem.diseaseTags || '无特殊关注';
+      this.scoreWeight = mem.scoreWeight || '均衡健康模式';
+      this.lastBackupTime = mem.lastBackupTime || '未备份';
+    }
+  }
+
   async loadProfile() {
-    this.profile = await FoodDBHelper.getUserProfile();
+    this.loadProfileSync();
+    if (this.isLoadingProfile) return;
+    this.isLoadingProfile = true;
+    try {
+      let p = await FoodDBHelper.getUserProfile();
+      this.profile = cloneUserProfile(p);
+      this.nickname = p.nickname || '健康探索者';
+      this.avatar = p.avatar || '🍎';
+      this.userId = p.id || '';
+      this.userHeight = p.height || 175;
+      this.userWeight = p.weight || 70;
+      this.targetGoal = p.targetGoal || '维持健康体重';
+      this.diseaseTags = p.diseaseTags || '无特殊关注';
+      this.scoreWeight = p.scoreWeight || '均衡健康模式';
+      this.lastBackupTime = p.lastBackupTime || '未备份';
+    } finally {
+      this.isLoadingProfile = false;
+    }
   }
 
   openEditProfilePage() {
@@ -160,12 +210,12 @@ export struct ProfileView {
     Row({ space: 16 }) {
       Stack() {
         Circle({ width: 64, height: 64 }).fill('#EAEAEA')
-        Text(this.profile.avatar).fontSize(36)
+        Text(this.avatar).fontSize(36)
       }
 
       Column({ space: 4 }) {
-        Text(this.profile.nickname).fontSize(20).fontWeight(FontWeight.Bold).fontColor('#333333')
-        Text(this.profile.id === '10000' ? `ID: ${this.profile.id} (游客体验)` : `ID: ${this.profile.id}`)
+        Text(this.nickname).fontSize(20).fontWeight(FontWeight.Bold).fontColor('#333333')
+        Text(this.userId && this.userId !== '' ? `ID: ${this.userId}` : '')
           .fontSize(12).fontColor('#999999')
 
         Row({ space: 4 }) {
@@ -206,15 +256,52 @@ export struct ProfileView {
         Text('健康档案').fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
       }.width('100%').padding({ left: 16, top: 16, bottom: 8 })
 
-      this.MenuRow($r('app.media.ic_body'), '基础身体数据', `${this.profile.height}cm / ${this.profile.weight}kg`, () => {
+      // 1. 基础身体数据 (直接绑定 @State 状态变量，杜绝 @Builder 按值传参无法刷新的缺陷)
+      Row() {
+        Image($r('app.media.ic_body')).width(20).height(20).margin({ right: 12 })
+        Text('基础身体数据').fontSize(15).fontColor('#333333')
+        Blank()
+        Text(`${this.userHeight}cm / ${this.userWeight}kg`).fontSize(13).fontColor('#999999').margin({ right: 6 })
+        Image($r('app.media.ic_arrow_right')).width(16).height(16)
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 16, bottom: 16 })
+      .alignItems(VerticalAlign.Center)
+      .onClick(() => {
         this.openBodyDataPage();
       })
+
       Divider().color('#F0F0F0').strokeWidth(1).margin({ left: 50, right: 16 })
-      this.MenuRow($r('app.media.ic_target'), '健康目标', this.profile.targetGoal, () => {
+
+      // 2. 健康目标
+      Row() {
+        Image($r('app.media.ic_target')).width(20).height(20).margin({ right: 12 })
+        Text('健康目标').fontSize(15).fontColor('#333333')
+        Blank()
+        Text(this.targetGoal).fontSize(13).fontColor('#999999').margin({ right: 6 })
+        Image($r('app.media.ic_arrow_right')).width(16).height(16)
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 16, bottom: 16 })
+      .alignItems(VerticalAlign.Center)
+      .onClick(() => {
         this.openHealthGoalPage();
       })
+
       Divider().color('#F0F0F0').strokeWidth(1).margin({ left: 50, right: 16 })
-      this.MenuRow($r('app.media.ic_tag'), '个性化膳食关注标签', this.profile.diseaseTags || '无特殊关注', () => {
+
+      // 3. 个性化膳食关注标签
+      Row() {
+        Image($r('app.media.ic_tag')).width(20).height(20).margin({ right: 12 })
+        Text('个性化膳食关注标签').fontSize(15).fontColor('#333333')
+        Blank()
+        Text(this.diseaseTags || '无特殊关注').fontSize(13).fontColor('#999999').margin({ right: 6 })
+        Image($r('app.media.ic_arrow_right')).width(16).height(16)
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 16, bottom: 16 })
+      .alignItems(VerticalAlign.Center)
+      .onClick(() => {
         this.openDiseaseTagsPage();
       })
     }
@@ -231,7 +318,18 @@ export struct ProfileView {
         Text('核心设置').fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
       }.width('100%').padding({ left: 16, top: 16, bottom: 8 })
 
-      this.MenuRow($r('app.media.ic_slider'), '评分维度权重自定义', this.profile.scoreWeight, () => {
+      // 4. 评分维度权重自定义
+      Row() {
+        Image($r('app.media.ic_slider')).width(20).height(20).margin({ right: 12 })
+        Text('评分维度权重自定义').fontSize(15).fontColor('#333333')
+        Blank()
+        Text(this.scoreWeight).fontSize(13).fontColor('#999999').margin({ right: 6 })
+        Image($r('app.media.ic_arrow_right')).width(16).height(16)
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 16, bottom: 16 })
+      .alignItems(VerticalAlign.Center)
+      .onClick(() => {
         this.openScoreWeightPage();
       })
     }
@@ -248,7 +346,7 @@ export struct ProfileView {
         Text('数据安全与管理').fontSize(16).fontWeight(FontWeight.Bold).fontColor('#333333')
       }.width('100%').padding({ left: 16, top: 16, bottom: 8 })
 
-      this.MenuRow($r('app.media.ic_backup'), '本地数据导出 (JSON/CSV)', `上次备份: ${this.profile.lastBackupTime}`, () => {
+      this.MenuRow($r('app.media.ic_backup'), '本地数据导出 (JSON/CSV)', `上次备份: ${this.lastBackupTime}`, () => {
         this.openExportDataPage();
       })
       Divider().color('#F0F0F0').strokeWidth(1).margin({ left: 50, right: 16 })

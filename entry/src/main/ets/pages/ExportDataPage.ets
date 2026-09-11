@@ -16,16 +16,16 @@ struct ExportDataPage {
   @State jsonSnippet: string = '正在抓取本地数据...';
   @State csvSnippet: string = '正在生成 CSV 表格...';
   @State profile: UserProfile = {
-    id: '10000',
+    id: '',
     nickname: '健康探索者',
     avatar: '🍎',
     height: 175,
     weight: 70,
-    targetGoal: '减重 5kg',
+    targetGoal: '维持健康体重',
     targetEnergy: 2100,
-    diseaseTags: '高尿酸 / 轻度脂肪肝',
-    scoreWeight: '已调高风险指标',
-    lastBackupTime: '昨天'
+    diseaseTags: '无特殊关注',
+    scoreWeight: '均衡健康模式',
+    lastBackupTime: '未备份'
   };
 
   async aboutToAppear() {

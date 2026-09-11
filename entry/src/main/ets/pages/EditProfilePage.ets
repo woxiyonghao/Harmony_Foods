@@ -10,16 +10,16 @@ struct EditProfilePage {
   @State nickname: string = '健康探索者';
   @State selectedAvatar: string = '😊';
   @State profile: UserProfile = {
-    id: 'default_user',
+    id: '',
     nickname: '健康探索者',
     avatar: '😊',
     height: 175,
     weight: 70,
-    targetGoal: '减重 5kg',
+    targetGoal: '维持健康体重',
     targetEnergy: 2100,
-    diseaseTags: '高尿酸 / 轻度脂肪肝',
-    scoreWeight: '已调高风险指标',
-    lastBackupTime: '昨天'
+    diseaseTags: '无特殊关注',
+    scoreWeight: '均衡健康模式',
+    lastBackupTime: '未备份'
   };
 
   private avatarOptions: string[] = [
@@ -56,9 +56,24 @@ struct EditProfilePage {
       return;
     }
 
-    this.profile.nickname = cleanNick;
-    this.profile.avatar = this.selectedAvatar;
-    await FoodDBHelper.saveUserProfile(this.profile);
+    this.profile = await FoodDBHelper.getUserProfile();
+    let updatedProfile: UserProfile = {
+      id: this.profile.id,
+      nickname: cleanNick,
+      avatar: this.selectedAvatar,
+      height: this.profile.height,
+      weight: this.profile.weight,
+      targetGoal: this.profile.targetGoal,
+      targetEnergy: this.profile.targetEnergy,
+      diseaseTags: this.profile.diseaseTags,
+      scoreWeight: this.profile.scoreWeight,
+      lastBackupTime: this.profile.lastBackupTime
+    };
+    let saved = await FoodDBHelper.saveUserProfile(updatedProfile);
+    if (!saved) {
+      promptAction.showToast({ message: '保存失败，请稍后重试' });
+      return;
+    }
 
     try {
       promptAction.showToast({ message: '个人资料保存成功' });
@@ -185,8 +200,12 @@ struct EditProfilePage {
               .height(48)
               .fontSize(15)
               .maxLength(6)
-              .backgroundColor('#F7F8FA')
+              .fontColor('#111827')
+              .placeholderColor('#9CA3AF')
+              .backgroundColor('#F9FAFB')
               .borderRadius(12)
+              .border({ width: 1, color: '#E5E7EB' })
+              .caretColor(AppTheme.PRIMARY_COLOR)
               .padding({ left: 14, right: 14 })
               .onChange((val: string) => {
                 this.nickname = val.length > 6 ? val.slice(0, 6) : val;

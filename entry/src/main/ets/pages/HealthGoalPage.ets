@@ -7,19 +7,19 @@ import { FoodDBHelper } from '../common/utils/FoodDBHelper';
 @Entry
 @Component
 struct HealthGoalPage {
-  @State selectedGoal: string = '减重 5kg';
+  @State selectedGoal: string = '维持健康体重';
   @State targetCalories: string = '2100';
   @State profile: UserProfile = {
-    id: '10000',
+    id: '',
     nickname: '健康探索者',
     avatar: '🍎',
     height: 175,
     weight: 70,
-    targetGoal: '减重 5kg',
+    targetGoal: '维持健康体重',
     targetEnergy: 2100,
-    diseaseTags: '高尿酸 / 轻度脂肪肝',
-    scoreWeight: '已调高风险指标',
-    lastBackupTime: '昨天'
+    diseaseTags: '无特殊关注',
+    scoreWeight: '均衡健康模式',
+    lastBackupTime: '未备份'
   };
 
   private goals: string[] = [
@@ -37,8 +37,8 @@ struct HealthGoalPage {
     let context = getContext(this);
     await FoodDBHelper.init(context);
     this.profile = await FoodDBHelper.getUserProfile();
-    this.selectedGoal = this.profile.targetGoal;
-    this.targetCalories = this.profile.targetEnergy.toString();
+    this.selectedGoal = this.profile.targetGoal || '维持健康体重';
+    this.targetCalories = (this.profile.targetEnergy || 2100).toString();
   }
 
   selectGoal(goal: string) {
@@ -56,18 +56,37 @@ struct HealthGoalPage {
     }
   }
 
-  async handleSave() {
+  async saveDirectly(): Promise<boolean> {
     let cal = parseInt(this.targetCalories) || 2100;
+    let updatedProfile: UserProfile = {
+      id: this.profile.id,
+      nickname: this.profile.nickname,
+      avatar: this.profile.avatar,
+      height: this.profile.height,
+      weight: this.profile.weight,
+      targetGoal: this.selectedGoal,
+      targetEnergy: cal,
+      diseaseTags: this.profile.diseaseTags || '无特殊关注',
+      scoreWeight: this.profile.scoreWeight || '均衡健康模式',
+      lastBackupTime: this.profile.lastBackupTime || '未备份'
+    };
+    return await FoodDBHelper.saveUserProfile(updatedProfile);
+  }
+
+  async handleSave() {
+    let cal = parseInt(this.targetCalories) || 0;
     if (cal < 800 || cal > 5000) {
       try {
-        promptAction.showToast({ message: '请输入合理的目标摄入能量 (800~5000 kcal)' });
+        promptAction.showToast({ message: '请输入合理的目标热量 (800-5000 kcal)' });
       } catch (e) {}
       return;
     }
 
-    this.profile.targetGoal = this.selectedGoal;
-    this.profile.targetEnergy = cal;
-    await FoodDBHelper.saveUserProfile(this.profile);
+    let saved = await this.saveDirectly();
+    if (!saved) {
+      promptAction.showToast({ message: '保存失败，请稍后重试' });
+      return;
+    }
 
     try {
       promptAction.showToast({ message: '健康目标已保存' });
@@ -76,6 +95,10 @@ struct HealthGoalPage {
     try {
       router.back();
     } catch (e) {}
+  }
+
+  onBackPress(): boolean {
+    return false;
   }
 
   build() {
@@ -169,9 +192,13 @@ struct HealthGoalPage {
                 .height(48)
                 .fontSize(20)
                 .fontWeight(FontWeight.Bold)
+                .fontColor('#111827')
+                .placeholderColor('#9CA3AF')
                 .layoutWeight(1)
-                .backgroundColor('#F7F8FA')
+                .backgroundColor('#F9FAFB')
                 .borderRadius(12)
+                .border({ width: 1, color: '#E5E7EB' })
+                .caretColor(AppTheme.PRIMARY_COLOR)
                 .padding({ left: 16, right: 16 })
                 .onChange((val: string) => {
                   this.targetCalories = val;
